@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pro Hisobchi</title>
+    <meta name="theme-color" content="#f6fcf8" />
+    <title>Pro Hisobchi — Xizmatlar</title>
 
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link
@@ -12,31 +13,709 @@
     />
 
     <style>
-      body {
-        background-color: #f6fcf8;
-        min-height: 100vh;
-        margin: 0;
-        box-shadow: inset 0 0 500px rgba(34, 48, 197, 0.22);
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
       }
-
+      html {
+        scroll-behavior: smooth;
+        overflow-x: hidden;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        overflow-x: hidden;
+        background: #f6fcf8;
+        color: #1f2937;
+      }
       .gradient-text {
-        background: linear-gradient(135deg, #16a34a, #2563eb);
+        background: linear-gradient(120deg, #059669, #2563eb);
         -webkit-background-clip: text;
         background-clip: text;
         -webkit-text-fill-color: transparent;
       }
+      .services-page {
+        width: 100%;
+        padding-top: 76px;
+        overflow: hidden;
+      }
+      .services-page > section {
+        width: 100%;
+        margin: 30px 0;
+        padding: 38px 0;
+        background: transparent;
+      }
+      .section-wrap {
+        width: min(1200px, 100%);
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+      .section-label {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 13px;
+        border: 1px solid #bbf7d0;
+        background: #ecfdf5;
+        color: #047857;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 1.2px;
+      }
+      .hero-title {
+        font-size: clamp(35px, 4.4vw, 54px);
+        line-height: 1.12;
+        letter-spacing: -1.8px;
+      }
+      .uiverse-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        padding: 15px 23px;
+        border: 0;
+        border-radius: 10px;
+        background: #059669;
+        color: #fff;
+        font-size: 14px;
+        font-weight: 700;
+        text-decoration: none;
+        cursor: pointer;
+        transition: 0.25s ease;
+        box-shadow: 0 7px 20px #05966926;
+      }
+      .uiverse-btn:hover {
+        background: #047857;
+        transform: translateY(-2px);
+        box-shadow: 0 12px 25px #05966938;
+      }
+      .uiverse-btn span {
+        transition: transform 0.25s ease;
+      }
+      .uiverse-btn:hover span {
+        transform: translateX(5px);
+      }
 
-.nav a:focus {
-background-color: #c2fad7;
-padding: 5px;
-border-radius: 6px;
-}
+      .service-card,
+      .package-card {
+        height: 100%;
+        min-width: 0;
+        padding: 26px;
+        background: #fff;
+        border: 1px solid #e5eee8;
+        border-radius: 16px;
+        transition: 0.25s ease;
+      }
+      .package-card {
+        display: flex;
+        flex-direction: column;
+      }
+      .package-card .package-action {
+        margin-top: auto !important;
+        padding-top: 28px;
+      }
+      .package-card .package-action .uiverse-btn {
+        width: 100%;
+      }
+      .service-card:hover,
+      .package-card:hover {
+        transform: translateY(-4px);
+        border-color: #86efac;
+        box-shadow: 0 14px 32px #0f4b3212;
+      }
+      .number-box {
+        width: 42px;
+        height: 42px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        border-radius: 10px;
+        background: #ecfdf5;
+        color: #047857;
+        font-size: 13px;
+        font-weight: 900;
+      }
+      .package-featured {
+        border: 2px solid #059669;
+      }
+      .process-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        min-width: 0;
+      }
+      .faq-item {
+        background: #fff;
+        border: 1px solid #e5eee8;
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      .faq-item summary {
+        cursor: pointer;
+        list-style: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        padding: 19px;
+        color: #1f2937;
+        font-size: 14px;
+        font-weight: 700;
+      }
+      .faq-item summary::-webkit-details-marker {
+        display: none;
+      }
+      .faq-item summary::after {
+        content: "+";
+        flex-shrink: 0;
+        color: #059669;
+        font-size: 22px;
+        font-weight: 500;
+      }
+      .faq-item[open] summary::after {
+        content: "−";
+      }
+      .faq-answer {
+        padding: 0 19px 19px;
+        color: #6b7280;
+        font-size: 13px;
+        line-height: 1.8;
+      }
+      .trust-panel {
+        background: linear-gradient(120deg, #064e3b, #065f46 55%, #1e40af);
+        border-radius: 22px;
+      }
+      .services-page .grid,
+      .services-page .grid > * {
+        min-width: 0;
+      }
+      .services-page h1,
+      .services-page h2,
+      .services-page h3,
+      .services-page h4,
+      .services-page p {
+        overflow-wrap: break-word;
+      }
+      .services-page img {
+        max-width: 100%;
+      }
+
+      .dashboard-card {
+        position: relative;
+        background: #fff;
+        border: 1px solid #e5eee8;
+        border-radius: 22px;
+        padding: 22px;
+        box-shadow: 0 18px 45px #0f513015;
+      }
+      .dashboard-metric {
+        padding: 17px;
+        border-radius: 14px;
+        min-width: 0;
+      }
+      .metric-value {
+        font-size: clamp(19px, 2.3vw, 26px);
+        font-weight: 900;
+        letter-spacing: -0.7px;
+        white-space: nowrap;
+      }
+      .progress-track {
+        height: 8px;
+        overflow: hidden;
+        border-radius: 20px;
+        background: #edf2ef;
+      }
+      .progress-fill {
+        height: 100%;
+        border-radius: 20px;
+      }
+      .sample-note {
+        font-size: 10px;
+        color: #9ca3af;
+        line-height: 1.5;
+      }
+
+      .contact-cta-card {
+        position: relative;
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        align-items: center;
+        gap: 28px;
+        min-height: 370px;
+        padding: 55px 60px;
+        overflow: hidden;
+        isolation: isolate;
+        background: #f7faf8;
+        border: 1px solid #dce9e1;
+        border-radius: 24px;
+      }
+      .contact-cta-card:before {
+        content: "";
+        position: absolute;
+        width: 420px;
+        height: 420px;
+        top: -250px;
+        left: -130px;
+        border-radius: 50%;
+        background: #10b9810d;
+        z-index: -1;
+      }
+      .cta-label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #047857;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 2px;
+      }
+      .cta-label-line {
+        width: 23px;
+        height: 2px;
+        background: #10b981;
+        border-radius: 10px;
+      }
+      .cta-heading {
+        max-width: 650px;
+        margin: 22px 0 0;
+        color: #10251d;
+        font-size: clamp(30px, 3.8vw, 46px);
+        font-weight: 850;
+        line-height: 1.15;
+        letter-spacing: -1.5px;
+      }
+      .cta-heading span {
+        display: block;
+        color: #059669;
+      }
+      .cta-copy {
+        max-width: 530px;
+        margin: 17px 0 0;
+        color: #68766f;
+        font-size: 14px;
+        line-height: 1.9;
+      }
+      .cta-actions {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 14px;
+        margin-top: 26px;
+      }
+      .cta-note {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        color: #718078;
+        font-size: 11px;
+      }
+      .cta-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #10b981;
+        box-shadow: 0 0 0 4px #10b9811f;
+      }
+      .cta-decoration {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 250px;
+      }
+      .cta-ring {
+        position: absolute;
+        border: 1px solid #05966920;
+        border-radius: 50%;
+      }
+      .cta-ring.one {
+        width: 300px;
+        height: 300px;
+      }
+      .cta-ring.two {
+        width: 230px;
+        height: 230px;
+      }
+      .cta-preview {
+        position: relative;
+        z-index: 2;
+        width: min(100%, 300px);
+        padding: 23px;
+        background: #fff;
+        border: 1px solid #e5eee8;
+        border-radius: 16px;
+        box-shadow: 0 20px 55px #0f2d1f17;
+        transform: rotate(-3deg);
+        transition: 0.3s;
+      }
+      .cta-preview:hover {
+        transform: rotate(0) translateY(-4px);
+      }
+      .preview-top,
+      .preview-bottom {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .preview-mark {
+        display: grid;
+        place-items: center;
+        width: 39px;
+        height: 39px;
+        background: #e9f8f0;
+        color: #047857;
+        border-radius: 9px;
+        font-size: 12px;
+        font-weight: 900;
+      }
+      .preview-status {
+        padding: 7px 9px;
+        color: #047857;
+        background: #ecfdf5;
+        border-radius: 6px;
+        font-size: 9px;
+        font-weight: 700;
+      }
+      .preview-title {
+        margin-top: 22px;
+        color: #172b22;
+        font-size: 17px;
+        font-weight: 800;
+      }
+      .preview-text {
+        margin-top: 7px;
+        color: #87938c;
+        font-size: 11px;
+        line-height: 1.7;
+      }
+      .preview-bars {
+        display: grid;
+        gap: 8px;
+        margin-top: 20px;
+      }
+      .preview-bars span {
+        height: 7px;
+        border-radius: 10px;
+        background: #edf3ef;
+      }
+      .preview-bars span:nth-child(2) {
+        width: 75%;
+        background: #d1fae5;
+      }
+      .preview-bars span:nth-child(3) {
+        width: 88%;
+      }
+      .preview-bottom {
+        margin-top: 21px;
+        padding-top: 13px;
+        border-top: 1px solid #edf1ee;
+        color: #9aa69f;
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 1px;
+      }
+
+      /* Modal */
+      .contact-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 18px;
+        visibility: hidden;
+        opacity: 0;
+        pointer-events: none;
+        transition:
+          opacity 0.25s,
+          visibility 0.25s;
+      }
+      .contact-modal.is-open {
+        visibility: visible;
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .modal-overlay {
+        position: absolute;
+        inset: 0;
+        background: #08160fc2;
+        backdrop-filter: blur(5px);
+      }
+      .modal-box {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        max-width: 490px;
+        max-height: calc(100vh - 36px);
+        overflow-y: auto;
+        padding: 32px;
+        background: #fff;
+        border: 1px solid #e6eee9;
+        border-radius: 17px;
+        box-shadow: 0 25px 80px #0003;
+        transform: translateY(18px) scale(0.98);
+        transition: transform 0.25s;
+      }
+      .contact-modal.is-open .modal-box {
+        transform: translateY(0) scale(1);
+      }
+      .modal-close {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        display: grid;
+        place-items: center;
+        width: 35px;
+        height: 35px;
+        color: #64746b;
+        background: #f3f6f4;
+        border: 0;
+        border-radius: 8px;
+        font-size: 24px;
+        cursor: pointer;
+      }
+      .modal-close:hover {
+        color: #047857;
+        background: #e6f5ec;
+      }
+      .modal-kicker {
+        color: #059669;
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 2px;
+      }
+      .modal-title {
+        margin: 11px 0 0;
+        color: #14271e;
+        font-size: 26px;
+        font-weight: 850;
+        letter-spacing: -0.6px;
+      }
+      .modal-description {
+        margin: 9px 0 0;
+        color: #7b8981;
+        font-size: 13px;
+        line-height: 1.7;
+      }
+      .contact-form {
+        display: grid;
+        gap: 15px;
+        margin-top: 24px;
+      }
+      .form-group {
+        display: grid;
+        gap: 7px;
+      }
+      .form-group label {
+        color: #26372e;
+        font-size: 12px;
+        font-weight: 750;
+      }
+      .form-group label span {
+        color: #9ba69f;
+        font-weight: 500;
+      }
+      .form-group input,
+      .form-group select,
+      .form-group textarea {
+        width: 100%;
+        min-height: 45px;
+        padding: 11px 13px;
+        color: #24352c;
+        background: #fbfcfb;
+        border: 1px solid #e1e9e3;
+        border-radius: 8px;
+        outline: none;
+        font: inherit;
+        font-size: 13px;
+        transition: 0.2s;
+      }
+      .form-group textarea {
+        min-height: 82px;
+        resize: vertical;
+      }
+      .form-group input:focus,
+      .form-group select:focus,
+      .form-group textarea:focus {
+        border-color: #10a879;
+        box-shadow: 0 0 0 3px #10a87917;
+      }
+      .modal-submit {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        min-height: 49px;
+        padding: 0 17px;
+        color: #fff;
+        background: #047857;
+        border: 0;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 750;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+      .modal-submit:hover {
+        background: #065f46;
+      }
+      .modal-submit span {
+        font-size: 20px;
+      }
+      .form-result {
+        display: none;
+        padding: 11px 13px;
+        border-radius: 8px;
+        font-size: 12px;
+        line-height: 1.6;
+      }
+      .form-result.show {
+        display: block;
+      }
+      .form-result.success {
+        color: #047857;
+        background: #ecfdf5;
+        border: 1px solid #bbf7d0;
+      }
+      .form-result.error {
+        color: #b42318;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+      }
+      .modal-privacy {
+        color: #9aa69f;
+        font-size: 10px;
+        line-height: 1.6;
+        text-align: center;
+      }
+
+      @media (max-width: 1024px) {
+        .contact-cta-card {
+          padding: 45px 35px;
+          grid-template-columns: 1.1fr 0.9fr;
+        }
+        .cta-heading {
+          font-size: 38px;
+        }
+      }
+      @media (max-width: 768px) {
+        .services-page {
+          padding-top: 65px;
+        }
+        .services-page > section {
+          padding: 27px 0;
+        }
+        .section-wrap {
+          padding: 0 19px;
+        }
+        .contact-cta-card {
+          grid-template-columns: 1fr;
+          gap: 5px;
+          padding: 36px 27px;
+        }
+        .cta-heading {
+          font-size: clamp(30px, 6vw, 39px);
+        }
+        .cta-decoration {
+          min-height: 220px;
+          margin-top: 10px;
+        }
+        .cta-ring.one {
+          width: 240px;
+          height: 240px;
+        }
+        .cta-ring.two {
+          width: 185px;
+          height: 185px;
+        }
+        .trust-panel {
+          padding: 30px 24px;
+        }
+      }
+      @media (max-width: 480px) {
+        .services-page {
+          padding-top: 55px;
+        }
+        .services-page > section {
+          margin: 25px 0;
+          padding: 22px 0;
+        }
+        .section-wrap {
+          padding: 0 15px;
+        }
+        .service-card,
+        .package-card {
+          padding: 20px;
+        }
+        .uiverse-btn {
+          width: 100%;
+          padding: 14px 17px;
+        }
+        .hero-title {
+          font-size: clamp(33px, 9vw, 43px);
+          letter-spacing: -1.2px;
+        }
+        .faq-item summary {
+          padding: 16px;
+          font-size: 13px;
+        }
+        .faq-answer {
+          padding: 0 16px 16px;
+        }
+        .process-item {
+          gap: 12px;
+        }
+        .hero-stats {
+          gap: 10px;
+        }
+        .hero-stats h3 {
+          font-size: 20px;
+        }
+        .contact-cta-card {
+          padding: 30px 20px 22px;
+          border-radius: 18px;
+        }
+        .cta-heading {
+          font-size: 30px;
+          letter-spacing: -1px;
+        }
+        .cta-copy {
+          font-size: 13px;
+        }
+        .cta-main-button {
+          width: 100%;
+          justify-content: space-between;
+        }
+        .cta-preview {
+          width: min(100%, 275px);
+          transform: none;
+        }
+        .modal-box {
+          padding: 27px 19px;
+        }
+        .modal-title {
+          font-size: 23px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          transition-duration: 0.01ms !important;
+          animation-duration: 0.01ms !important;
+        }
+      }
     </style>
   </head>
+
   <body class="font-sans antialiased text-gray-800">
-   
     <header
-      class="fixed top-0 left-0 w-full z-40 bg-white/80 backdrop-blur-md border-b border-green-200/50 shadow-sm"
+      class="fixed top-0 left-0 w-full z-40 bg-white/90 backdrop-blur-md border-b border-green-200/50 shadow-sm"
     >
       <div
         class="max-w-[1200px] mx-auto w-full px-4 sm:px-6 py-3 flex items-center justify-between"
@@ -45,47 +724,41 @@ border-radius: 6px;
           <img
             src="./images/image.png"
             class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl shadow-md border border-green-100 object-cover"
-            alt="Pro Hisobchi Logo"
+            alt="Pro Hisobchi logotipi"
           />
           <div class="flex flex-col">
             <span
               class="text-[9px] font-extrabold uppercase tracking-widest text-emerald-700 bg-emerald-100 px-1.5 py-[1px] rounded w-fit"
+              >PRO</span
             >
-              PRO
-            </span>
-            <h2
+            <span
               class="text-lg sm:text-xl font-black tracking-tight gradient-text"
+              >Pro Hisobchi</span
             >
-              Pro Hisobchi
-            </h2>
           </div>
         </a>
 
-        <nav class="nav hidden md:flex items-center gap-8">
+        <nav class="hidden md:flex items-center gap-8">
           <a
             href="./index.html"
-            class="text-sm font-semibold text-gray-700 hover:text-emerald-600 transition-colors"
+            class="text-sm font-semibold text-gray-700 hover:text-emerald-600"
+            >Bosh sahifa</a
           >
-            Bosh sahifa
-          </a>
           <a
             href="./xizmatlar.html"
-            class="text-sm font-semibold text-gray-700 hover:text-emerald-600 transition-colors"
+            class="text-sm font-semibold text-emerald-700"
+            >Xizmatlar</a
           >
-            Xizmatlar
-          </a>
           <a
             href="./to'lovlar.html"
-            class="text-sm font-semibold text-gray-700 hover:text-emerald-600 transition-colors"
+            class="text-sm font-semibold text-gray-700 hover:text-emerald-600"
+            >To‘lovlar</a
           >
-            To'lovlar
-          </a>
           <a
             href="./aloqa.html"
-            class="text-sm font-semibold text-gray-700 hover:text-emerald-600 transition-colors"
+            class="text-sm font-semibold text-gray-700 hover:text-emerald-600"
+            >Aloqa</a
           >
-            Aloqa
-          </a>
         </nav>
 
         <div class="flex items-center gap-3 shrink-0">
@@ -96,19 +769,19 @@ border-radius: 6px;
               alt="Profil"
             />
           </a>
-
           <button
             type="button"
             data-drawer-target="drawer-navigation"
             data-drawer-show="drawer-navigation"
             aria-controls="drawer-navigation"
-            class="md:hidden p-2 text-gray-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all cursor-pointer"
+            class="md:hidden p-2 text-gray-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all"
           >
             <svg
               class="w-6 h-6"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
+              aria-hidden="true"
             >
               <path
                 stroke-linecap="round"
@@ -124,153 +797,896 @@ border-radius: 6px;
 
     <div
       id="drawer-navigation"
-      class="fixed top-0 left-0 z-50 h-screen p-5 overflow-y-auto transition-transform -translate-x-full bg-white w-80 border-e border-emerald-100 shadow-2xl"
+      class="fixed top-0 left-0 z-50 h-screen p-5 overflow-y-auto transition-transform -translate-x-full bg-white w-80 max-w-[85vw] border-e border-emerald-100 shadow-2xl"
       tabindex="-1"
       aria-labelledby="drawer-navigation-label"
     >
       <div
         class="pb-4 mb-4 border-b border-gray-100 flex items-center justify-between"
       >
-        <a href="" class="flex items-center space-x-3">
+        <a href="./index.html" class="flex items-center gap-3">
           <img
             src="./images/image.png"
             class="h-10 w-10 rounded-xl shadow-sm border border-emerald-100"
-            alt="Pro Hisobchi Logo"
+            alt="Pro Hisobchi logotipi"
           />
-          <div class="flex flex-col">
-            <span
-              class="text-[9px] font-extrabold tracking-widest text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded w-fit"
-              >PRO</span
-            >
-            <span class="text-base font-bold gradient-text">Pro Hisobchi</span>
-          </div>
+          <span class="text-base font-bold gradient-text">Pro Hisobchi</span>
         </a>
         <button
           type="button"
           data-drawer-hide="drawer-navigation"
           aria-controls="drawer-navigation"
-          class="text-gray-400 bg-transparent hover:bg-emerald-50 hover:text-emerald-600 rounded-xl w-9 h-9 flex items-center justify-center transition-all cursor-pointer"
+          class="text-gray-500 hover:bg-emerald-50 hover:text-emerald-600 rounded-xl w-9 h-9 flex items-center justify-center"
+          aria-label="Menyuni yopish"
         >
           <svg
             class="w-5 h-5"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
+            aria-hidden="true"
           >
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
               stroke-width="2"
-              d="M6 18 17.94 6M18 18 6.06 6"
+              d="M6 18 18 6M6 6l12 12"
             />
           </svg>
-          <span class="sr-only">Menyuni yopish</span>
         </button>
       </div>
+      <ul class="space-y-2 font-medium">
+        <li>
+          <a
+            href="./index.html"
+            class="block p-3 text-gray-700 rounded-xl hover:bg-emerald-50"
+            >Bosh sahifa</a
+          >
+        </li>
+        <li>
+          <a
+            href="./xizmatlar.html"
+            class="block p-3 text-emerald-700 bg-emerald-50 rounded-xl"
+            >Xizmatlar</a
+          >
+        </li>
+        <li>
+          <a
+            href="./to'lovlar.html"
+            class="block p-3 text-gray-700 rounded-xl hover:bg-emerald-50"
+            >To‘lovlar</a
+          >
+        </li>
+        <li>
+          <a
+            href="./aloqa.html"
+            class="block p-3 text-gray-700 rounded-xl hover:bg-emerald-50"
+            >Aloqa</a
+          >
+        </li>
+      </ul>
+    </div>
 
-      <div class="py-2">
-        <ul class="space-y-2 font-medium">
-          <li>
-            <a
-              href="./index.html"
-              class="flex items-center p-3 text-gray-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition-all group"
-            >
-              <svg
-                class="w-5 h-5 text-gray-400 group-hover:text-emerald-600 transition-colors"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+    <main class="services-page">
+      <!-- 1. HERO -->
+      <section>
+        <div class="section-wrap">
+          <div class="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            <div>
+              <span class="section-label">PRO HISOBCHI / XIZMATLAR</span>
+              <h1 class="hero-title font-black text-gray-900 mt-7">
+                Biznesingiz uchun
+                <span class="gradient-text">professional</span> moliyaviy
+                yechimlar
+              </h1>
+              <p
+                class="text-gray-500 text-base md:text-lg leading-8 mt-6 max-w-xl"
               >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="m4 12 8-8 8 8M6 10.5V19a1 1 0 0 0 1 1h3v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3h3a1 1 0 0 0 1-1v-8.5"
-                />
-              </svg>
-              <span class="ms-3 text-sm font-semibold">Bosh sahifa</span>
-            </a>
-          </li>
+                Buxgalteriya, soliq hisobotlari va moliyaviy nazorat.
+                Biznesingizdagi moliyaviy jarayonlarni tartibli va samarali
+                boshqarishga yordam beramiz.
+              </p>
+              <div class="mt-8">
+                <button
+                  type="button"
+                  class="uiverse-btn"
+                  data-scroll-to="xizmatlar"
+                >
+                  Xizmatlar bilan tanishish <span>→</span>
+                </button>
+              </div>
+              <div
+                class="hero-stats grid grid-cols-3 gap-5 mt-12 pt-8 border-t border-gray-200 max-w-lg"
+              >
+                <div>
+                  <h3 class="text-2xl font-black text-gray-900">06</h3>
+                  <p class="text-xs text-gray-500 mt-2">Xizmat turi</p>
+                </div>
+                <div>
+                  <h3 class="text-2xl font-black text-gray-900">03</h3>
+                  <p class="text-xs text-gray-500 mt-2">Xizmat paketi</p>
+                </div>
+                <div>
+                  <h3 class="text-2xl font-black text-gray-900">08</h3>
+                  <p class="text-xs text-gray-500 mt-2">Sahifa bo‘limi</p>
+                </div>
+              </div>
+            </div>
 
-          <li>
-            <a
-              href="./xizmatlar.html"
-              class="flex items-center p-3 text-gray-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition-all group"
-            >
-              <svg
-                class="w-5 h-5 text-gray-400 group-hover:text-emerald-600 transition-colors"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M10 6.025A7.5 7.5 0 1 0 17.975 14H10V6.025Z"
-                />
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M13.5 3c-.169 0-.334.014-.5.025V11h7.975c.011-.166.025-.331.025-.5A7.5 7.5 0 0 0 13.5 3Z"
-                />
-              </svg>
-              <span class="ms-3 text-sm font-semibold">Xizmatlar</span>
-            </a>
-          </li>
+            <div class="relative">
+              <div
+                class="absolute inset-0 bg-emerald-100 blur-3xl opacity-60 rounded-full"
+              ></div>
+              <div class="dashboard-card relative">
+                <div
+                  class="flex justify-between items-center gap-3 pb-5 border-b border-gray-100"
+                >
+                  <div>
+                    <p class="text-xs text-gray-400 font-bold">PRO HISOBCHI</p>
+                    <h3 class="text-xl font-black text-gray-900 mt-1">
+                      Moliyaviy ko‘rsatkichlar
+                    </h3>
+                  </div>
+                  <span
+                    class="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-2 rounded-lg"
+                    >Namuna</span
+                  >
+                </div>
 
-          <li>
-            <a
-              href="./to'lovlar.html"
-              class="flex items-center p-3 text-gray-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition-all group"
-            >
-              <svg
-                class="w-5 h-5 text-gray-400 group-hover:text-emerald-600 transition-colors"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M15 5v14M9 5v14M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"
-                />
-              </svg>
-              <span class="ms-3 text-sm font-semibold flex-1">To'lovlar</span>
+                <div class="grid grid-cols-2 gap-3 sm:gap-4 mt-5">
+                  <div class="dashboard-metric bg-emerald-50">
+                    <p class="text-xs text-gray-500">Jami daromad</p>
+                    <h3 class="metric-value text-emerald-700 mt-3">45 mln</h3>
+                    <p class="text-xs text-emerald-700 mt-2">
+                      Biznesga tushgan mablag‘
+                    </p>
+                  </div>
+                  <div class="dashboard-metric bg-blue-50">
+                    <p class="text-xs text-gray-500">Jami xarajat</p>
+                    <h3 class="metric-value text-blue-700 mt-3">18 mln</h3>
+                    <p class="text-xs text-blue-700 mt-2">
+                      Biznes sarflagan mablag‘
+                    </p>
+                  </div>
+                </div>
+
+                <div class="mt-4 p-4 sm:p-5 border border-gray-100 rounded-2xl">
+                  <div class="flex justify-between items-center gap-3">
+                    <div>
+                      <p class="text-xs text-gray-500">
+                        Daromaddan qolgan mablag‘
+                      </p>
+                      <h4 class="text-2xl font-black text-gray-900 mt-1">
+                        27 mln so‘m
+                      </h4>
+                    </div>
+                    <span
+                      class="text-sm font-extrabold text-emerald-700 bg-emerald-50 px-3 py-2 rounded-lg"
+                      >60%</span
+                    >
+                  </div>
+                  <p class="text-xs text-gray-400 mt-2">
+                    Sof foyda ulushi — daromadning xarajatlardan keyin qolgan
+                    qismi.
+                  </p>
+                  <div class="progress-track mt-4">
+                    <div
+                      class="progress-fill bg-emerald-500"
+                      style="width: 60%"
+                    ></div>
+                  </div>
+                </div>
+
+                <div class="mt-4 p-4 sm:p-5 border border-gray-100 rounded-2xl">
+                  <h4 class="text-sm font-bold text-gray-800">
+                    Hisob jarayonlari
+                  </h4>
+                  <div class="space-y-5 mt-5">
+                    <div>
+                      <div class="flex justify-between gap-2 text-xs mb-2">
+                        <span class="text-gray-500">Buxgalteriya hisobi</span
+                        ><strong class="text-gray-700">80%</strong>
+                      </div>
+                      <div class="progress-track">
+                        <div
+                          class="progress-fill bg-emerald-500"
+                          style="width: 80%"
+                        ></div>
+                      </div>
+                    </div>
+                    <div>
+                      <div class="flex justify-between gap-2 text-xs mb-2">
+                        <span class="text-gray-500">Soliq hisobotlari</span
+                        ><strong class="text-gray-700">60%</strong>
+                      </div>
+                      <div class="progress-track">
+                        <div
+                          class="progress-fill bg-blue-500"
+                          style="width: 60%"
+                        ></div>
+                      </div>
+                    </div>
+                    <div>
+                      <div class="flex justify-between gap-2 text-xs mb-2">
+                        <span class="text-gray-500">Moliyaviy nazorat</span
+                        ><strong class="text-gray-700">85%</strong>
+                      </div>
+                      <div class="progress-track">
+                        <div
+                          class="progress-fill bg-teal-500"
+                          style="width: 85%"
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <p class="sample-note mt-3">
+                  Eslatma: ko‘rsatilgan summalar va foizlar dizaynni
+                  tushuntirish uchun keltirilgan namunaviy ma’lumotlar.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="xizmatlar">
+        <div class="section-wrap">
+          <div class="max-w-2xl mb-12">
+            <span class="section-label">BIZNING XIZMATLAR</span>
+            <h2 class="text-3xl md:text-4xl font-black text-gray-900 mt-5">
+              Biznesingiz uchun moliyaviy xizmatlar
+            </h2>
+            <p class="text-gray-500 leading-7 mt-5">
+              Korxonangiz faoliyatiga mos xizmatlar orqali hisob-kitoblarni
+              tartibga solish va boshqaruvni yaxshilash.
+            </p>
+          </div>
+          <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div class="service-card">
+              <div class="number-box">01</div>
+              <h3 class="text-xl font-extrabold text-gray-900 mt-6">
+                Buxgalteriya hisobi
+              </h3>
+              <p class="text-sm text-gray-500 leading-7 mt-3">
+                Kirim, chiqim, hujjatlar va kundalik hisob-kitoblarni tartibli
+                yuritish.
+              </p>
+            </div>
+            <div class="service-card">
+              <div class="number-box">02</div>
+              <h3 class="text-xl font-extrabold text-gray-900 mt-6">
+                Soliq hisobotlari
+              </h3>
+              <p class="text-sm text-gray-500 leading-7 mt-3">
+                Soliq hujjatlarini tayyorlash, hisoblash va hisobot
+                jarayonlarini kuzatish.
+              </p>
+            </div>
+            <div class="service-card">
+              <div class="number-box">03</div>
+              <h3 class="text-xl font-extrabold text-gray-900 mt-6">
+                Moliyaviy tahlil
+              </h3>
+              <p class="text-sm text-gray-500 leading-7 mt-3">
+                Daromad va xarajatlarni tahlil qilish, moliyaviy holatni
+                baholash.
+              </p>
+            </div>
+            <div class="service-card">
+              <div class="number-box">04</div>
+              <h3 class="text-xl font-extrabold text-gray-900 mt-6">
+                Ish haqi hisobi
+              </h3>
+              <p class="text-sm text-gray-500 leading-7 mt-3">
+                Xodimlar ish haqi va tegishli hisob-kitoblarni yuritish.
+              </p>
+            </div>
+            <div class="service-card">
+              <div class="number-box">05</div>
+              <h3 class="text-xl font-extrabold text-gray-900 mt-6">
+                Hujjatlar bilan ishlash
+              </h3>
+              <p class="text-sm text-gray-500 leading-7 mt-3">
+                Moliyaviy hujjatlarni tayyorlash, tekshirish va tizimlashtirish.
+              </p>
+            </div>
+            <div class="service-card">
+              <div class="number-box">06</div>
+              <h3 class="text-xl font-extrabold text-gray-900 mt-6">
+                Moliyaviy maslahat
+              </h3>
+              <p class="text-sm text-gray-500 leading-7 mt-3">
+                Biznesingizdagi moliyaviy masalalar bo‘yicha maslahat va tahlil.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-wrap">
+          <div class="max-w-2xl mx-auto text-center">
+            <span class="section-label">HAMKORLIK PAKETLARI</span>
+            <h2 class="text-3xl md:text-4xl font-black text-gray-900 mt-5">
+              Biznesingizga mos xizmat paketi
+            </h2>
+            <p class="text-gray-500 leading-7 mt-5">
+              Faoliyat ko‘lami va ehtiyojlaringizga mos hamkorlik yo‘nalishini
+              tanlang.
+            </p>
+          </div>
+
+          <div class="grid md:grid-cols-3 gap-5 mt-12 items-stretch">
+            <div class="package-card">
               <span
-                class="bg-emerald-100 border border-emerald-200 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-md"
-                >Pro</span
+                class="text-xs font-extrabold text-emerald-700 tracking-widest"
+                >BOSHLANG‘ICH</span
               >
-            </a>
-          </li>
+              <h3 class="text-2xl font-black text-gray-900 mt-4">Start</h3>
+              <p class="text-sm text-gray-500 mt-3 leading-7">
+                Kichik biznes va yangi faoliyat uchun.
+              </p>
+              <div class="border-t border-gray-100 mt-7 pt-6 space-y-4">
+                <p class="text-sm text-gray-600">
+                  ✓ Asosiy buxgalteriya hisobi
+                </p>
+                <p class="text-sm text-gray-600">✓ Kirim va chiqim nazorati</p>
+                <p class="text-sm text-gray-600">✓ Hujjatlarni yuritish</p>
+                <p class="text-sm text-gray-600">✓ Asosiy hisobotlar</p>
+              </div>
+              <div class="package-action">
+                <button
+                  type="button"
+                  class="uiverse-btn"
+                  data-select-service="Start paketi"
+                >
+                  Paketni tanlash <span>→</span>
+                </button>
+              </div>
+            </div>
 
-          <li>
-            <a
-              href="./aloqa.html"
-              class="flex items-center p-3 text-gray-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition-all group"
-            >
-              <svg
-                class="w-5 h-5 text-gray-400 group-hover:text-emerald-600 transition-colors"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+            <div class="package-card package-featured">
+              <span
+                class="text-xs font-extrabold text-emerald-700 tracking-widest"
+                >OMMABOP TANLOV</span
               >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M18.42 15.61a2.1 2.1 0 0 0-2.97 0l-1 1a1.23 1.23 0 0 1-1.32.3 12.37 12.37 0 0 1-5.18-5.18 1.23 1.23 0 0 1 .3-1.32l1-1a2.1 2.1 0 0 0 0-2.97L7.3 4.5a2.1 2.1 0 0 0-2.97 0L3.1 5.73A3.1 3.1 0 0 0 2.2 8a17.2 17.2 0 0 0 13.8 13.8 3.1 3.1 0 0 0 2.27-.9l1.23-1.23a2.1 2.1 0 0 0 0-2.97l-1.08-1.09Z"
-                />
-              </svg>
-              <span class="ms-3 text-sm font-semibold">Aloqa</span>
-            </a>
-          </li>
-        </ul>
+              <h3 class="text-2xl font-black text-gray-900 mt-4">Business</h3>
+              <p class="text-sm text-gray-500 mt-3 leading-7">
+                Faol biznes jarayonlari uchun.
+              </p>
+              <div class="border-t border-gray-100 mt-7 pt-6 space-y-4">
+                <p class="text-sm text-gray-600">✓ Buxgalteriya hisobi</p>
+                <p class="text-sm text-gray-600">✓ Soliq hisobotlari</p>
+                <p class="text-sm text-gray-600">✓ Moliyaviy tahlil</p>
+                <p class="text-sm text-gray-600">✓ Ish haqi hisob-kitobi</p>
+              </div>
+              <div class="package-action">
+                <button
+                  type="button"
+                  class="uiverse-btn"
+                  data-select-service="Business paketi"
+                >
+                  Paketni tanlash <span>→</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="package-card">
+              <span class="text-xs font-extrabold text-blue-700 tracking-widest"
+                >KENG QAMROVLI</span
+              >
+              <h3 class="text-2xl font-black text-gray-900 mt-4">Enterprise</h3>
+              <p class="text-sm text-gray-500 mt-3 leading-7">
+                Katta va murakkab biznes tuzilmalari uchun.
+              </p>
+              <div class="border-t border-gray-100 mt-7 pt-6 space-y-4">
+                <p class="text-sm text-gray-600">✓ Kompleks buxgalteriya</p>
+                <p class="text-sm text-gray-600">
+                  ✓ Soliq hisobotlarini yuritish
+                </p>
+                <p class="text-sm text-gray-600">✓ Chuqur moliyaviy tahlil</p>
+                <p class="text-sm text-gray-600">✓ Individual yondashuv</p>
+              </div>
+              <div class="package-action">
+                <button
+                  type="button"
+                  class="uiverse-btn"
+                  data-select-service="Enterprise paketi"
+                >
+                  Paketni tanlash <span>→</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-wrap">
+          <div class="max-w-2xl">
+            <span class="section-label">ISH JARAYONI</span>
+            <h2 class="text-3xl md:text-4xl font-black text-gray-900 mt-5">
+              Hamkorlik qanday amalga oshiriladi?
+            </h2>
+            <p class="text-gray-500 leading-7 mt-5">
+              Har bir bosqich aniq reja va izchil yondashuv asosida tashkil
+              etiladi.
+            </p>
+          </div>
+          <div
+            class="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10 mt-14"
+          >
+            <div class="process-item">
+              <div class="number-box">01</div>
+              <div>
+                <h3 class="font-extrabold text-gray-900 text-lg">Murojaat</h3>
+                <p class="text-sm text-gray-500 leading-7 mt-3">
+                  Siz biznesingiz va ehtiyojlaringiz haqida ma’lumot berasiz.
+                </p>
+              </div>
+            </div>
+            <div class="process-item">
+              <div class="number-box">02</div>
+              <div>
+                <h3 class="font-extrabold text-gray-900 text-lg">Tahlil</h3>
+                <p class="text-sm text-gray-500 leading-7 mt-3">
+                  Mavjud moliyaviy jarayonlar va talablar o‘rganiladi.
+                </p>
+              </div>
+            </div>
+            <div class="process-item">
+              <div class="number-box">03</div>
+              <div>
+                <h3 class="font-extrabold text-gray-900 text-lg">
+                  Rejalashtirish
+                </h3>
+                <p class="text-sm text-gray-500 leading-7 mt-3">
+                  Sizga mos xizmatlar va ish tartibi belgilanadi.
+                </p>
+              </div>
+            </div>
+            <div class="process-item">
+              <div class="number-box">04</div>
+              <div>
+                <h3 class="font-extrabold text-gray-900 text-lg">Hujjatlar</h3>
+                <p class="text-sm text-gray-500 leading-7 mt-3">
+                  Kerakli hujjatlar tayyorlanadi va tartibga keltiriladi.
+                </p>
+              </div>
+            </div>
+            <div class="process-item">
+              <div class="number-box">05</div>
+              <div>
+                <h3 class="font-extrabold text-gray-900 text-lg">
+                  Ishni boshlash
+                </h3>
+                <p class="text-sm text-gray-500 leading-7 mt-3">
+                  Kelishilgan xizmatlar bo‘yicha ish jarayoni boshlanadi.
+                </p>
+              </div>
+            </div>
+            <div class="process-item">
+              <div class="number-box">06</div>
+              <div>
+                <h3 class="font-extrabold text-gray-900 text-lg">Monitoring</h3>
+                <p class="text-sm text-gray-500 leading-7 mt-3">
+                  Hisob-kitoblar va vazifalar kuzatib boriladi.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-wrap">
+          <div class="max-w-2xl mx-auto text-center">
+            <span class="section-label">KIMLAR UCHUN?</span>
+            <h2 class="text-3xl md:text-4xl font-black text-gray-900 mt-5">
+              Turli biznes yo‘nalishlari uchun yechimlar
+            </h2>
+            <p class="text-gray-500 leading-7 mt-5">
+              Har bir biznesning o‘ziga xos moliyaviy ehtiyojlari bor. Xizmatlar
+              faoliyat turiga moslashtiriladi.
+            </p>
+          </div>
+          <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-12">
+            <div class="service-card">
+              <p class="text-xs font-black text-emerald-700">01 / SAVDO</p>
+              <h3 class="text-lg font-extrabold mt-5 text-gray-900">
+                Savdo korxonalari
+              </h3>
+              <p class="text-sm text-gray-500 leading-7 mt-3">
+                Tovar aylanmasi, kirim-chiqim va savdo hisobi.
+              </p>
+            </div>
+            <div class="service-card">
+              <p class="text-xs font-black text-emerald-700">02 / XIZMAT</p>
+              <h3 class="text-lg font-extrabold mt-5 text-gray-900">
+                Xizmat ko‘rsatish
+              </h3>
+              <p class="text-sm text-gray-500 leading-7 mt-3">
+                Xizmat daromadlari, xarajatlar va moliyaviy hujjatlar.
+              </p>
+            </div>
+            <div class="service-card">
+              <p class="text-xs font-black text-emerald-700">
+                03 / ISHLAB CHIQARISH
+              </p>
+              <h3 class="text-lg font-extrabold mt-5 text-gray-900">
+                Ishlab chiqarish
+              </h3>
+              <p class="text-sm text-gray-500 leading-7 mt-3">
+                Mahsulot tannarxi, xarajatlar va hisob-kitoblar.
+              </p>
+            </div>
+            <div class="service-card">
+              <p class="text-xs font-black text-emerald-700">04 / STARTUP</p>
+              <h3 class="text-lg font-extrabold mt-5 text-gray-900">
+                Yangi loyihalar
+              </h3>
+              <p class="text-sm text-gray-500 leading-7 mt-3">
+                Yangi biznes uchun boshlang‘ich hisob va rejalashtirish.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-wrap">
+          <div class="grid lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <span class="section-label">BIZNING USTUNLIKLARIMIZ</span>
+              <h2
+                class="text-3xl md:text-4xl font-black text-gray-900 mt-5 leading-tight"
+              >
+                Moliyaviy boshqaruvda tartib va aniqlik
+              </h2>
+              <p class="text-gray-500 leading-8 mt-5">
+                Biznesning barqaror ishlashi uchun moliyaviy ma’lumotlar
+                tushunarli, tartibli va nazorat qilinadigan bo‘lishi muhim.
+              </p>
+            </div>
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div class="bg-emerald-50 rounded-2xl p-6">
+                <h3 class="text-lg font-black text-gray-900">
+                  Tizimli yondashuv
+                </h3>
+                <p class="text-sm text-gray-600 leading-7 mt-3">
+                  Ish jarayonlari aniq tartib va reja asosida olib boriladi.
+                </p>
+              </div>
+              <div class="bg-blue-50 rounded-2xl p-6">
+                <h3 class="text-lg font-black text-gray-900">
+                  Aniq hisob-kitob
+                </h3>
+                <p class="text-sm text-gray-600 leading-7 mt-3">
+                  Moliyaviy ma’lumotlarni tartibli yuritishga e’tibor beriladi.
+                </p>
+              </div>
+              <div class="bg-blue-50 rounded-2xl p-6">
+                <h3 class="text-lg font-black text-gray-900">Ochiq muloqot</h3>
+                <p class="text-sm text-gray-600 leading-7 mt-3">
+                  Vazifalar va kelishuvlar tushunarli bo‘ladi.
+                </p>
+              </div>
+              <div class="bg-emerald-50 rounded-2xl p-6">
+                <h3 class="text-lg font-black text-gray-900">
+                  Moslashuvchanlik
+                </h3>
+                <p class="text-sm text-gray-600 leading-7 mt-3">
+                  Xizmatlar biznes ehtiyojlariga qarab belgilanadi.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-wrap">
+          <div class="trust-panel p-8 sm:p-10 md:p-14">
+            <div class="max-w-3xl">
+              <span
+                class="inline-flex px-4 py-2 rounded-lg bg-white/10 text-emerald-100 text-xs font-extrabold tracking-widest"
+                >PRO HISOBCHI YONDASHUVI</span
+              >
+              <h2
+                class="text-3xl md:text-5xl font-black text-white mt-7 leading-tight"
+              >
+                Biznesingiz moliyasini tushunarli va tartibli boshqaring
+              </h2>
+              <p class="text-emerald-100/80 leading-8 mt-6 max-w-2xl">
+                Har bir moliyaviy qaror aniq ma’lumot va puxta tahlilga
+                asoslanishi kerak. Biz sizga shu jarayonni tashkil qilishda
+                yordam beramiz.
+              </p>
+              <div
+                class="grid sm:grid-cols-3 gap-6 mt-10 pt-8 border-t border-white/20"
+              >
+                <div>
+                  <h3 class="text-white text-lg font-black">Shaffoflik</h3>
+                  <p class="text-xs text-emerald-100/70 mt-2">
+                    Tushunarli jarayonlar
+                  </p>
+                </div>
+                <div>
+                  <h3 class="text-white text-lg font-black">Mas’uliyat</h3>
+                  <p class="text-xs text-emerald-100/70 mt-2">
+                    Kelishilgan vazifalar
+                  </p>
+                </div>
+                <div>
+                  <h3 class="text-white text-lg font-black">Tartib</h3>
+                  <p class="text-xs text-emerald-100/70 mt-2">
+                    Tizimli hisob yuritish
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="savollar">
+        <div class="section-wrap">
+          <div class="max-w-2xl mb-10">
+            <span class="section-label">KO‘P SO‘RALADIGAN SAVOLLAR</span>
+            <h2 class="text-3xl md:text-4xl font-black text-gray-900 mt-5">
+              Sizni qiziqtirgan savollarga javoblar
+            </h2>
+            <p class="text-gray-500 leading-7 mt-4">
+              Xizmatlarimiz va hamkorlik jarayoni haqida qisqacha ma’lumot.
+            </p>
+          </div>
+
+          <div class="grid md:grid-cols-2 gap-4">
+            <details class="faq-item">
+              <summary>Qaysi xizmatlardan foydalanishim mumkin?</summary>
+              <div class="faq-answer">
+                Buxgalteriya hisobi, soliq hisobotlari, moliyaviy tahlil, ish
+                haqi hisobi, hujjatlar bilan ishlash va moliyaviy maslahat
+                xizmatlari mavjud.
+              </div>
+            </details>
+            <details class="faq-item">
+              <summary>Xizmat paketi qanday tanlanadi?</summary>
+              <div class="faq-answer">
+                Paket biznesingiz hajmi, faoliyat turi va kerakli xizmatlar
+                asosida tanlanadi. Murojaat qilganingizda ehtiyojlaringizni
+                aniqlab olamiz.
+              </div>
+            </details>
+            <details class="faq-item">
+              <summary>Kichik biznes ham murojaat qilishi mumkinmi?</summary>
+              <div class="faq-answer">
+                Ha. Start paketi kichik biznes va faoliyatini endi boshlayotgan
+                loyihalar ehtiyojlarini hisobga olgan holda tuzilgan.
+              </div>
+            </details>
+            <details class="faq-item">
+              <summary>Hamkorlikni boshlash uchun nima kerak?</summary>
+              <div class="faq-answer">
+                Avvalo biznesingiz va sizga kerak bo‘lgan xizmat haqida qisqacha
+                ma’lumot berasiz. Keyingi qadamlar kelishib olinadi.
+              </div>
+            </details>
+          </div>
+
+          <div class="contact-cta-card mt-14 md:mt-16">
+            <div class="relative z-10">
+              <div class="cta-label">
+                <span class="cta-label-line"></span> PRO HISOBCHI
+                <span class="cta-label-line"></span>
+              </div>
+              <h2 class="cta-heading">
+                Biznesingiz uchun <span>to‘g‘ri moliyaviy yechim</span>
+              </h2>
+              <p class="cta-copy">
+                Moliyaviy hisob-kitoblaringizni tartibga solish, xarajatlarni
+                nazorat qilish va biznesingizni ishonchli boshqarish uchun biz
+                bilan bog‘laning.
+              </p>
+              <div class="cta-actions">
+                <button
+                  type="button"
+                  class="uiverse-btn cta-main-button"
+                  id="openContactModal"
+                >
+                  Biz bilan bog‘lanish <span>→</span>
+                </button>
+                <div class="cta-note">
+                  <span class="cta-dot"></span>Sizga mos yechimni birgalikda
+                  tanlaymiz
+                </div>
+              </div>
+            </div>
+            <div class="cta-decoration" aria-hidden="true">
+              <div class="cta-ring one"></div>
+              <div class="cta-ring two"></div>
+              <div class="cta-preview">
+                <div class="preview-top">
+                  <span class="preview-mark">PH</span
+                  ><span class="preview-status">Professional xizmat</span>
+                </div>
+                <div class="preview-title">Moliyaviy boshqaruv</div>
+                <div class="preview-text">
+                  Biznesingiz uchun aniq hisob-kitob va nazorat.
+                </div>
+                <div class="preview-bars">
+                  <span></span><span></span><span></span>
+                </div>
+                <div class="preview-bottom">
+                  <span>PRO HISOBCHI</span><span>01 / 08</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div class="contact-modal" id="contactModal" aria-hidden="true">
+      <div class="modal-overlay" id="modalOverlay"></div>
+      <div
+        class="modal-box"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modalTitle"
+      >
+        <button
+          type="button"
+          class="modal-close"
+          id="closeContactModal"
+          aria-label="Modalni yopish"
+        >
+          &times;
+        </button>
+        <div class="modal-kicker">PRO HISOBCHI</div>
+        <h3 class="modal-title" id="modalTitle">Biz bilan bog‘laning</h3>
+        <p class="modal-description">
+          Quyidagi ma’lumotlarni to‘ldiring. Sizga kerakli xizmat bo‘yicha
+          murojaatingiz tayyorlanadi.
+        </p>
+
+        <form class="contact-form" id="contactForm">
+          <div class="form-group">
+            <label for="contactName">Ismingiz</label>
+            <input
+              type="text"
+              id="contactName"
+              name="name"
+              placeholder="Ismingizni kiriting"
+              minlength="2"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="contactPhone">Telefon raqamingiz</label>
+            <input
+              type="tel"
+              id="contactPhone"
+              name="phone"
+              placeholder="+998 90 123 45 67"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="contactService">Kerakli xizmat</label>
+            <select id="contactService" name="service" required>
+              <option value="" selected disabled>Xizmatni tanlang</option>
+              <option>Buxgalteriya hisobi</option>
+              <option>Soliq hisobotlari</option>
+              <option>Moliyaviy tahlil</option>
+              <option>Ish haqi hisobi</option>
+              <option>Hujjatlar bilan ishlash</option>
+              <option>Moliyaviy maslahat</option>
+              <option>Start paketi</option>
+              <option>Business paketi</option>
+              <option>Enterprise paketi</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="contactMessage"
+              >Qo‘shimcha izoh <span>(ixtiyoriy)</span></label
+            >
+            <textarea
+              id="contactMessage"
+              name="message"
+              rows="3"
+              placeholder="Xabaringizni yozing..."
+            ></textarea>
+          </div>
+
+          <button type="submit" class="modal-submit">
+            So‘rovni tayyorlash <span>→</span>
+          </button>
+          <div class="form-result" id="formResult" aria-live="polite"></div>
+          <div class="modal-privacy">
+            Ma’lumotlaringiz faqat murojaatingiz bilan bog‘lanish uchun
+            ishlatiladi.
+          </div>
+        </form>
       </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script>
+
+    <script>
+      document.querySelectorAll("[data-scroll-to]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const target = document.getElementById(button.dataset.scrollTo);
+          if (target) {
+            target.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          }
+        });
+      });
+
+      document.querySelectorAll("[data-select-service]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const serviceSelect = document.getElementById("contactService");
+          serviceSelect.value = button.dataset.selectService;
+          document.getElementById("openContactModal").click();
+        });
+      });
+
+      (() => {
+        const modal = document.getElementById("contactModal");
+        const openButton = document.getElementById("openContactModal");
+        const closeButton = document.getElementById("closeContactModal");
+        const overlay = document.getElementById("modalOverlay");
+        const form = document.getElementById("contactForm");
+        const result = document.getElementById("formResult");
+        const nameInput = document.getElementById("contactName");
+
+        let lastFocusedElement = null;
+
+        function openModal() {
+          lastFocusedElement = document.activeElement;
+          modal.classList.add("is-open");
+          modal.setAttribute("aria-hidden", "false");
+          document.body.style.overflow = "hidden";
+          window.setTimeout(() => nameInput.focus(), 100);
+        }
+
+        function closeModal() {
+          modal.classList.remove("is-open");
+          modal.setAttribute("aria-hidden", "true");
+          document.body.style.overflow = "";
+
+          if (lastFocusedElement) {
+            lastFocusedElement.focus();
+          }
+        }
+
+        openButton.addEventListener("click", openModal);
+        closeButton.addEventListener("click", closeModal);
+        overlay.addEventListener("click", closeModal);
+
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape" && modal.classList.contains("is-open")) {
+            closeModal();
+          }
+        });
+
+        form.addEventListener("submit", (event) => {
+          event.preventDefault();
+
+          if (!form.reportValidity()) return;
+
+          result.className = "form-result show success";
+          result.textContent =
+            "Forma to‘ldirildi. Hozircha sayt serverga yoki Telegram botga ulanmagan, shu sababli ma’lumot yuborilmadi.";
+        });
+      })();
+    </script>
   </body>
 </html>

@@ -714,8 +714,12 @@
   </head>
 
   <body class="font-sans antialiased text-gray-800">
-    <header
-      class="fixed top-0 left-0 w-full z-40 bg-white/90 backdrop-blur-md border-b border-green-200/50 shadow-sm"
+   <header
+      class="fixed top-0 left-0 w-full z-40 border-b border-green-200/50 shadow-sm"
+      style="
+        background-color: rgba(255, 255, 255, 0.188);
+        backdrop-filter: blur(6px);
+      "
     >
       <div
         class="max-w-[1200px] mx-auto w-full px-4 sm:px-6 py-3 flex items-center justify-between"
@@ -724,64 +728,79 @@
           <img
             src="./images/image.png"
             class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl shadow-md border border-green-100 object-cover"
-            alt="Pro Hisobchi logotipi"
+            alt="Pro Hisobchi Logo"
           />
           <div class="flex flex-col">
             <span
               class="text-[9px] font-extrabold uppercase tracking-widest text-emerald-700 bg-emerald-100 px-1.5 py-[1px] rounded w-fit"
-              >PRO</span
             >
-            <span
+              PRO
+            </span>
+            <h2
               class="text-lg sm:text-xl font-black tracking-tight gradient-text"
-              >Pro Hisobchi</span
             >
+              Pro Hisobchi
+            </h2>
           </div>
         </a>
 
-        <nav class="hidden md:flex items-center gap-8">
+        <nav class="nav hidden md:flex items-center gap-8">
           <a
             href="./index.html"
-            class="text-sm font-semibold text-gray-700 hover:text-emerald-600"
-            >Bosh sahifa</a
+            class="text-sm font-semibold text-gray-700 hover:text-emerald-600 transition-colors"
           >
+            Bosh sahifa
+          </a>
           <a
             href="./xizmatlar.html"
-            class="text-sm font-semibold text-emerald-700"
-            >Xizmatlar</a
+            class="text-sm font-semibold text-gray-700 hover:text-emerald-600 transition-colors"
           >
+            Xizmatlar
+          </a>
           <a
             href="./to'lovlar.html"
-            class="text-sm font-semibold text-gray-700 hover:text-emerald-600"
-            >To‘lovlar</a
+            class="text-sm font-semibold text-gray-700 hover:text-emerald-600 transition-colors"
           >
+            To'lovlar
+          </a>
           <a
             href="./aloqa.html"
-            class="text-sm font-semibold text-gray-700 hover:text-emerald-600"
-            >Aloqa</a
+            class="text-sm font-semibold text-gray-700 hover:text-emerald-600 transition-colors"
           >
+            Aloqa
+          </a>
         </nav>
 
         <div class="flex items-center gap-3 shrink-0">
           <a href="./profil.html" class="relative block">
-            <img
-              src="./images/image copy.png"
-              class="w-9 h-9 sm:w-10 sm:h-10 rounded-full ring-2 ring-emerald-500/60 object-cover"
-              alt="Profil"
-            />
+            <div class="flex items-center gap-[10px]">
+              <img
+                src="./images/image copy.png"
+                class="w-9 h-9 sm:w-10 sm:h-10 rounded-full ring-2 ring-emerald-500/60 object-cover"
+                alt="Profil"
+              />
+              <div>
+                <p
+                  class="gradient-text text-[20px] max-[768px]:hidden font-bold"
+                >
+                  Profil
+                </p>
+              </div>
+            </div>
           </a>
+
           <button
             type="button"
             data-drawer-target="drawer-navigation"
             data-drawer-show="drawer-navigation"
             aria-controls="drawer-navigation"
-            class="md:hidden p-2 text-gray-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all"
+            class="md:hidden p-2 text-gray-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all cursor-pointer"
           >
             <svg
               class="w-6 h-6"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
-              aria-hidden="true"
             >
               <path
                 stroke-linecap="round"
@@ -795,82 +814,171 @@
       </div>
     </header>
 
-    <div
-      id="drawer-navigation"
-      class="fixed top-0 left-0 z-50 h-screen p-5 overflow-y-auto transition-transform -translate-x-full bg-white w-80 max-w-[85vw] border-e border-emerald-100 shadow-2xl"
-      tabindex="-1"
-      aria-labelledby="drawer-navigation-label"
-    >
+    <div>
       <div
-        class="pb-4 mb-4 border-b border-gray-100 flex items-center justify-between"
+        id="drawer-navigation"
+        class="fixed top-0 left-0 z-50 h-screen p-5 overflow-y-auto transition-transform -translate-x-full bg-white w-80 border-e border-emerald-100 shadow-2xl"
+        tabindex="-1"
+        aria-labelledby="drawer-navigation-label"
       >
-        <a href="./index.html" class="flex items-center gap-3">
-          <img
-            src="./images/image.png"
-            class="h-10 w-10 rounded-xl shadow-sm border border-emerald-100"
-            alt="Pro Hisobchi logotipi"
-          />
-          <span class="text-base font-bold gradient-text">Pro Hisobchi</span>
-        </a>
-        <button
-          type="button"
-          data-drawer-hide="drawer-navigation"
-          aria-controls="drawer-navigation"
-          class="text-gray-500 hover:bg-emerald-50 hover:text-emerald-600 rounded-xl w-9 h-9 flex items-center justify-center"
-          aria-label="Menyuni yopish"
+        <div
+          class="pb-4 mb-4 border-b border-gray-100 flex items-center justify-between"
         >
-          <svg
-            class="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M6 18 18 6M6 6l12 12"
+          <a href="#" class="flex items-center space-x-3">
+            <img
+              src="./images/image.png"
+              class="h-10 w-10 rounded-xl shadow-sm border border-emerald-100"
+              alt="Pro Hisobchi Logo"
             />
-          </svg>
-        </button>
+            <div class="flex flex-col">
+              <span
+                class="text-[9px] font-extrabold tracking-widest text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded w-fit"
+                >PRO</span
+              >
+              <span class="text-base font-bold gradient-text"
+                >Pro Hisobchi</span
+              >
+            </div>
+          </a>
+          <button
+            type="button"
+            data-drawer-hide="drawer-navigation"
+            aria-controls="drawer-navigation"
+            class="text-gray-400 bg-transparent hover:bg-emerald-50 hover:text-emerald-600 rounded-xl w-9 h-9 flex items-center justify-center transition-all cursor-pointer"
+          >
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18 17.94 6M18 18 6.06 6"
+              />
+            </svg>
+            <span class="sr-only">Menyuni yopish</span>
+          </button>
+        </div>
+
+        <div class="py-2">
+          <ul class="space-y-2 font-medium">
+            <li>
+              <a
+                href="./index.html"
+                class="flex items-center p-3 text-gray-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition-all group"
+              >
+                <svg
+                  class="w-5 h-5 text-gray-400 group-hover:text-emerald-600 transition-colors"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="m4 12 8-8 8 8M6 10.5V19a1 1 0 0 0 1 1h3v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3h3a1 1 0 0 0 1-1v-8.5"
+                  />
+                </svg>
+                <span class="ms-3 text-sm font-semibold">Bosh sahifa</span>
+              </a>
+            </li>
+
+            <li>
+              <a
+                href="./xizmatlar.html"
+                class="flex items-center p-3 text-gray-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition-all group"
+              >
+                <svg
+                  class="w-5 h-5 text-gray-400 group-hover:text-emerald-600 transition-colors"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M10 6.025A7.5 7.5 0 1 0 17.975 14H10V6.025Z"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13.5 3c-.169 0-.334.014-.5.025V11h7.975c.011-.166.025-.331.025-.5A7.5 7.5 0 0 0 13.5 3Z"
+                  />
+                </svg>
+                <span class="ms-3 text-sm font-semibold">Xizmatlar</span>
+              </a>
+            </li>
+
+            <li>
+              <a
+                href="./to'lovlar.html"
+                class="flex items-center p-3 text-gray-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition-all group"
+              >
+                <svg
+                  class="w-5 h-5 text-gray-400 group-hover:text-emerald-600 transition-colors"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 5v14M9 5v14M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"
+                  />
+                </svg>
+                <span class="ms-3 text-sm font-semibold flex-1">To'lovlar</span>
+                <span
+                  class="bg-emerald-100 border border-emerald-200 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-md"
+                  >Pro</span
+                >
+              </a>
+            </li>
+
+            <li>
+              <a
+                href="./aloqa.html"
+                class="flex items-center p-3 text-gray-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition-all group"
+              >
+                <svg
+                  class="w-5 h-5 text-gray-400 group-hover:text-emerald-600 transition-colors"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M18.42 15.61a2.1 2.1 0 0 0-2.97 0l-1 1a1.23 1.23 0 0 1-1.32.3 12.37 12.37 0 0 1-5.18-5.18 1.23 1.23 0 0 1 .3-1.32l1-1a2.1 2.1 0 0 0 0-2.97L7.3 4.5a2.1 2.1 0 0 0-2.97 0L3.1 5.73A3.1 3.1 0 0 0 2.2 8a17.2 17.2 0 0 0 13.8 13.8 3.1 3.1 0 0 0 2.27-.9l1.23-1.23a2.1 2.1 0 0 0 0-2.97l-1.08-1.09Z"
+                  />
+                </svg>
+                <span class="ms-3 text-sm font-semibold">Aloqa</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+        <div
+          class="box flex items-center justify-between rounded-[6px] p-[8px]"
+        >
+          <p>Foydalanilgan vaqt</p>
+          <div>
+            <h2 class="italic text-[20px]! font-bold" id="counter"></h2>
+          </div>
+        </div>
       </div>
-      <ul class="space-y-2 font-medium">
-        <li>
-          <a
-            href="./index.html"
-            class="block p-3 text-gray-700 rounded-xl hover:bg-emerald-50"
-            >Bosh sahifa</a
-          >
-        </li>
-        <li>
-          <a
-            href="./xizmatlar.html"
-            class="block p-3 text-emerald-700 bg-emerald-50 rounded-xl"
-            >Xizmatlar</a
-          >
-        </li>
-        <li>
-          <a
-            href="./to'lovlar.html"
-            class="block p-3 text-gray-700 rounded-xl hover:bg-emerald-50"
-            >To‘lovlar</a
-          >
-        </li>
-        <li>
-          <a
-            href="./aloqa.html"
-            class="block p-3 text-gray-700 rounded-xl hover:bg-emerald-50"
-            >Aloqa</a
-          >
-        </li>
-      </ul>
     </div>
 
     <main class="services-page">
-      <!-- 1. HERO -->
+    
       <section>
-        <div class="section-wrap">
+        <div class="section-wrap ">
           <div class="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             <div>
               <span class="section-label">PRO HISOBCHI / XIZMATLAR</span>
@@ -896,7 +1004,7 @@
                 </button>
               </div>
               <div
-                class="hero-stats grid grid-cols-3 gap-5 mt-12 pt-8 border-t border-gray-200 max-w-lg"
+                class="hero-stats grid grid-cols-3 gap-[100px] mt-12 pt-8 border-t border-gray-200 mx-auto w-full"
               >
                 <div>
                   <h3 class="text-2xl font-black text-gray-900">06</h3>
@@ -1614,6 +1722,46 @@
         </form>
       </div>
     </div>
+
+
+     <footer
+      class="w-full overflow-hidden border-t border-gray-200 bg-white py-10 sm:py-12 lg:py-[60px]"
+    >
+      <div class="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-[30px]">
+        <div class="w-full min-w-0 max-w-[320px] sm:max-w-none">
+          <a
+            href="./index.html"
+            class="mb-4 flex items-center justify-start gap-3"
+          >
+            <img
+              src="./images/image.png"
+              class="h-11 w-11 shrink-0 rounded-xl border border-green-100 object-cover shadow-md sm:h-[45px] sm:w-[45px]"
+              alt="Pro Hisobchi Logo"
+            />
+            <div class="flex min-w-0 flex-col">
+              <span
+                class="w-fit rounded bg-emerald-100 px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-widest text-emerald-700"
+              >
+                PRO
+              </span>
+              <h2
+                class="break-words text-base font-black tracking-tight text-gray-900 sm:text-lg lg:text-xl"
+              >
+                Pro Hisobchi
+              </h2>
+            </div>
+          </a>
+        </div>
+
+        <div class="border-t border-gray-200 pt-5 sm:pt-[25px]">
+          <p
+            class="break-words text-left text-xs leading-relaxed text-gray-500 sm:text-sm"
+          >
+            © 2026 Pro Hisobchi. Barcha huquqlar himoyalangan.
+          </p>
+        </div>
+      </div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script>
 

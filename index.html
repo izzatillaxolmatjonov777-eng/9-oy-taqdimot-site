@@ -4,6 +4,214 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Pro Hisobchi</title>
+
+    <!-- LOGIN: kirish tizimi va profil ma'lumotlari (eng birinchi skript) -->
+    <script>
+      (function () {
+        var USER_KEY = "ph_user";
+        var PROFILES_KEY = "ph_profiles";
+        var LAST_KEY = "ph_last_email";
+        var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+        // Google'dagidek avatar ranglari (oq harf yaxshi ko'rinadigan to'q ranglar)
+        var PALETTE = [
+          "#c62828", "#ad1457", "#6a1b9a", "#4527a0", "#283593", "#1565c0",
+          "#00695c", "#2e7d32", "#bf360c", "#4e342e", "#37474f", "#00838f",
+        ];
+
+        // Xotira: localStorage ishlamasa, vaqtincha xotiraga o'tadi (sayt baribir ishlaydi)
+        var store;
+        try {
+          localStorage.setItem("__ph", "1");
+          localStorage.removeItem("__ph");
+          store = localStorage;
+        } catch (e) {
+          var mem = {};
+          store = {
+            getItem: function (k) {
+              return Object.prototype.hasOwnProperty.call(mem, k) ? mem[k] : null;
+            },
+            setItem: function (k, v) {
+              mem[k] = String(v);
+            },
+            removeItem: function (k) {
+              delete mem[k];
+            },
+          };
+        }
+
+        function read(k, fb) {
+          try {
+            var v = JSON.parse(store.getItem(k));
+            return v === null || v === undefined ? fb : v;
+          } catch (e) {
+            return fb;
+          }
+        }
+        function write(k, v) {
+          try {
+            store.setItem(k, JSON.stringify(v));
+            return true;
+          } catch (e) {
+            return false;
+          }
+        }
+        function nameFromEmail(email) {
+          return String(email || "")
+            .split("@")[0]
+            .replace(/[._-]+/g, " ")
+            .trim()
+            .split(" ")
+            .map(function (w) {
+              return w.charAt(0).toUpperCase() + w.slice(1);
+            })
+            .join(" ");
+        }
+        function randomColor() {
+          return PALETTE[Math.floor(Math.random() * PALETTE.length)];
+        }
+        function splitName(full) {
+          var parts = String(full || "").trim().split(/\s+/).filter(Boolean);
+          return { first: parts[0] || "", last: parts.slice(1).join(" ") };
+        }
+
+        // Profil har doim bir xil shaklga keltiriladi (eski profillar ham to'g'ri o'qiladi)
+        function normalize(raw, email) {
+          raw = raw || {};
+          var p = {
+            email: email,
+            firstName: String(raw.firstName || ""),
+            lastName: String(raw.lastName || ""),
+            phone: String(raw.phone || ""),
+            about: String(raw.about || ""),
+            photo: String(raw.photo || ""),
+            color: raw.color || randomColor(),
+            createdAt: raw.createdAt || Date.now(),
+          };
+          if (!p.firstName && !p.lastName && raw.name && raw.name !== nameFromEmail(email)) {
+            var s = splitName(raw.name);
+            p.firstName = s.first;
+            p.lastName = s.last;
+          }
+          return p;
+        }
+
+        function getProfile(email) {
+          var profiles = read(PROFILES_KEY, {});
+          var raw = profiles[email];
+          if (!raw) return null;
+          var p = normalize(raw, email);
+          if (JSON.stringify(raw) !== JSON.stringify(p)) {
+            profiles[email] = p;
+            write(PROFILES_KEY, profiles);
+          }
+          return p;
+        }
+
+        var Auth = {
+          user: function () {
+            return read(USER_KEY, null);
+          },
+          isLoggedIn: function () {
+            var u = this.user();
+            return !!(u && u.email);
+          },
+          lastEmail: function () {
+            return read(LAST_KEY, "");
+          },
+          hasAccount: function (email) {
+            email = String(email || "").trim().toLowerCase();
+            return !!(email && read(PROFILES_KEY, {})[email]);
+          },
+          profile: function () {
+            var u = this.user();
+            return u ? getProfile(u.email) : null;
+          },
+          displayName: function (p) {
+            if (!p) return "Foydalanuvchi";
+            var full = (p.firstName + " " + p.lastName).trim();
+            return full || nameFromEmail(p.email) || "Foydalanuvchi";
+          },
+
+          // Email va istalgan kod bilan kirish. Kod saqlanmaydi.
+          login: function (email, code) {
+            email = String(email || "").trim().toLowerCase();
+            code = String(code || "").trim();
+            if (!EMAIL_RE.test(email)) {
+              return { ok: false, error: "Email manzilini to'g'ri kiriting." };
+            }
+            if (!code) {
+              return { ok: false, error: "Kodni kiriting." };
+            }
+            var profiles = read(PROFILES_KEY, {});
+            // Birinchi kirishda profil yaratiladi (random rang bilan), keyingisida saqlangani tiklanadi
+            profiles[email] = normalize(profiles[email], email);
+            write(LAST_KEY, email);
+            if (
+              !write(PROFILES_KEY, profiles) ||
+              !write(USER_KEY, { email: email, loginAt: Date.now() })
+            ) {
+              return { ok: false, error: "Saqlashda xatolik. Qayta urinib ko'ring." };
+            }
+            return { ok: true };
+          },
+
+          saveProfile: function (patch) {
+            var u = this.user();
+            if (!u) return false;
+            var profiles = read(PROFILES_KEY, {});
+            var p = normalize(profiles[u.email], u.email);
+            ["firstName", "lastName", "phone", "about", "photo"].forEach(function (k) {
+              if (Object.prototype.hasOwnProperty.call(patch, k)) p[k] = String(patch[k] || "");
+            });
+            profiles[u.email] = p;
+            return write(PROFILES_KEY, profiles);
+          },
+
+          // Emailni o'zgartirish: profil ma'lumotlari yangi emailga ko'chadi
+          changeEmail: function (newEmail) {
+            var u = this.user();
+            if (!u) return { ok: false, error: "Avval hisobga kiring." };
+            newEmail = String(newEmail || "").trim().toLowerCase();
+            if (!EMAIL_RE.test(newEmail)) {
+              return { ok: false, error: "Email manzilini to'g'ri kiriting." };
+            }
+            if (newEmail === u.email) {
+              return { ok: false, error: "Bu sizning hozirgi emailingiz." };
+            }
+            var profiles = read(PROFILES_KEY, {});
+            if (profiles[newEmail]) {
+              return { ok: false, error: "Bu email boshqa akkauntda saqlangan." };
+            }
+            var p = normalize(profiles[u.email] || { createdAt: u.loginAt }, newEmail);
+            delete profiles[u.email];
+            profiles[newEmail] = p;
+            if (
+              !write(PROFILES_KEY, profiles) ||
+              !write(USER_KEY, { email: newEmail, loginAt: u.loginAt })
+            ) {
+              return { ok: false, error: "Saqlashda xatolik. Qayta urinib ko'ring." };
+            }
+            write(LAST_KEY, newEmail);
+            return { ok: true };
+          },
+
+          // Chiqishda faqat sessiya o'chadi. Profil ma'lumotlari saqlanib qoladi.
+          logout: function () {
+            try {
+              store.removeItem(USER_KEY);
+            } catch (e) {}
+          },
+        };
+        window.PHAuth = Auth;
+
+        // Kirmagan bo'lsa sayt yashiriladi (faqat login oynasi ko'rinadi)
+        if (!Auth.isLoggedIn()) {
+          document.documentElement.classList.add("ph-locked");
+        }
+      })();
+    </script>
+
     <link
       href="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.css"
       rel="stylesheet"
@@ -319,9 +527,167 @@
         background-color: rgb(243, 241, 241);
         border: 2px solid gainsboro;
       }
+
+      /* LOGIN: kirmagan odamga sayt ko'rinmaydi, faqat login oynasi chiqadi */
+      html.ph-locked body > *:not(#authGate) {
+        display: none !important;
+      }
+      html:not(.ph-locked) #authGate {
+        display: none !important;
+      }
+      .ph-gate {
+        position: fixed;
+        inset: 0;
+        z-index: 10000;
+        overflow-y: auto;
+        background: #f6fcf8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px 16px;
+      }
+
+      /* PROFIL: Google uslubidagi avatar (rasm yoki email'ning bosh harfi) */
+      .ph-avatar {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 9999px;
+        overflow: hidden;
+        color: #fff;
+        font-weight: 700;
+        line-height: 1;
+        user-select: none;
+        background: #059669;
+        flex-shrink: 0;
+      }
+      .ph-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      /* Email faqat "O'zgartirish" bosilganda tahrirlanadi */
+      #phProfEmail[readonly] {
+        background: #f9fafb;
+        color: #6b7280;
+        border-color: #e5e7eb;
+      }
     </style>
   </head>
   <body class="font-sans antialiased text-gray-800">
+    <!-- LOGIN: kirish oynasi -->
+    <div id="authGate" class="ph-gate">
+      <div class="w-full max-w-[440px]">
+        <div
+          class="bg-white/80 backdrop-blur-md border border-emerald-200/60 rounded-3xl p-8 sm:p-10 shadow-xl shadow-emerald-500/5"
+        >
+          <div class="flex items-center justify-center gap-3 mb-6">
+            <img
+              src="./images/image.png"
+              class="w-12 h-12 rounded-xl shadow-md border border-green-100 object-cover"
+              alt="Pro Hisobchi Logo"
+            />
+            <div class="flex flex-col">
+              <span
+                class="text-[9px] font-extrabold uppercase tracking-widest text-emerald-700 bg-emerald-100 px-1.5 py-[1px] rounded w-fit"
+                >PRO</span
+              >
+              <span class="text-xl font-black tracking-tight gradient-text"
+                >Pro Hisobchi</span
+              >
+            </div>
+          </div>
+
+          <div class="text-center mb-6">
+            <span
+              class="inline-flex items-center gap-2 px-3 py-1 mb-3 text-xs font-semibold text-emerald-800 bg-emerald-100/80 rounded-full border border-emerald-200"
+            >
+              Xavfsiz kirish
+            </span>
+            <h1
+              class="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight"
+            >
+              Hisobingizga <span class="gradient-text">kiring</span>
+            </h1>
+            <p class="text-gray-600 text-sm mt-2">
+              Email manzilingiz va kodni kiriting.
+            </p>
+          </div>
+
+          <form id="phLoginForm" class="space-y-4" novalidate>
+            <div>
+              <label
+                for="phEmail"
+                class="block text-xs font-medium text-gray-700 mb-1"
+                >Email</label
+              >
+              <input
+                id="phEmail"
+                type="email"
+                inputmode="email"
+                autocomplete="email"
+                placeholder="misol@gmail.com"
+                class="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+              />
+            </div>
+
+            <div>
+              <label
+                for="phCode"
+                class="block text-xs font-medium text-gray-700 mb-1"
+                >Kod</label
+              >
+              <div class="relative">
+                <input
+                  id="phCode"
+                  type="password"
+                  autocomplete="off"
+                  placeholder="Istalgan kodni kiriting"
+                  class="w-full pl-3 pr-16 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                />
+                <button
+                  id="phToggleCode"
+                  type="button"
+                  class="absolute inset-y-0 right-0 px-3 text-xs font-semibold text-emerald-700 hover:text-emerald-800 cursor-pointer"
+                >
+                  Ko'rsat
+                </button>
+              </div>
+            </div>
+
+            <p
+              id="phHint"
+              style="display: none"
+              class="text-xs font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2"
+            >
+              Bu akkaunt saqlangan. Kodni kiritsangiz, profilingiz va
+              ma'lumotlaringiz tiklanadi.
+            </p>
+
+            <p
+              id="phError"
+              style="display: none"
+              class="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2"
+              role="alert"
+            ></p>
+
+            <button
+              type="submit"
+              class="w-full font-bold text-[14px] text-white py-3 rounded-[10px] b1 hover:opacity-95 transition-opacity cursor-pointer"
+            >
+              Kirish
+            </button>
+          </form>
+        </div>
+
+        <p class="text-center text-xs text-gray-500 mt-5">
+          © 2026 Pro Hisobchi. Barcha huquqlar himoyalangan.
+        </p>
+      </div>
+    </div>
+    <!-- /LOGIN -->
+
     <div class="load">
       <!-- From Uiverse.io by abhinav_7137 -->
       <div class="wallet-loader">
@@ -397,11 +763,13 @@
         <div class="flex items-center gap-3 shrink-0">
           <a href="./profil.html" class="relative block">
             <div class="flex items-center gap-[10px]">
-              <img
-                src="./images/image copy.png"
-                class="w-9 h-9 sm:w-10 sm:h-10 rounded-full ring-2 ring-emerald-500/60 object-cover"
-                alt="Profil"
-              />
+              <!-- PROFIL: rasm yoki email'ning bosh harfi (random rangda) -->
+              <span
+                data-avatar
+                class="ph-avatar w-9 h-9 sm:w-10 sm:h-10 ring-2 ring-emerald-500/60 text-base"
+                role="img"
+                aria-label="Profil"
+              ></span>
               <div>
                 <p
                   class="gradient-text text-[20px] max-[768px]:hidden font-bold"
@@ -595,6 +963,35 @@
             <h2 class="italic text-[20px]! font-bold" id="counter"></h2>
           </div>
         </div>
+
+        <!-- LOGIN: kirgan email va "Chiqish" tugmasi -->
+        <div class="mt-4 border-t border-gray-100 pt-4">
+          <p class="text-xs text-gray-500 pb-2 truncate">
+            Kirgan:
+            <span data-user-email class="font-semibold text-gray-700"></span>
+          </p>
+          <button
+            type="button"
+            data-logout
+            class="w-full flex items-center justify-center gap-2 p-3 rounded-xl text-sm font-bold text-red-600 bg-red-50 hover:bg-red-100 transition-all cursor-pointer"
+          >
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 16l-4-4m0 0 4-4m-4 4h11"
+              />
+            </svg>
+            Chiqish
+          </button>
+        </div>
+        <!-- /LOGIN -->
       </div>
     </div>
 
@@ -1427,6 +1824,537 @@
         </div>
       </div>
     </footer>
+
+    <!-- PROFIL: profil oynasi (header'dagi "Profil" bosilganda ochiladi) -->
+    <div
+      id="phProfileModal"
+      style="display: none"
+      class="fixed inset-0 z-[10001] items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="phProfileTitle"
+    >
+      <div id="phProfileBackdrop" class="absolute inset-0 bg-gray-900/50"></div>
+      <div
+        class="relative w-full max-w-[520px] max-h-[92vh] overflow-y-auto bg-white rounded-3xl border border-emerald-200/60 shadow-2xl p-6 sm:p-8"
+      >
+        <button
+          id="phProfileClose"
+          type="button"
+          aria-label="Yopish"
+          class="absolute top-4 right-4 w-9 h-9 rounded-xl text-gray-400 hover:bg-emerald-50 hover:text-emerald-600 flex items-center justify-center cursor-pointer transition-all"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6" />
+          </svg>
+        </button>
+
+        <div class="text-center">
+          <span
+            class="inline-flex items-center gap-2 px-3 py-1 mb-3 text-xs font-semibold text-emerald-800 bg-emerald-100/80 rounded-full border border-emerald-200"
+          >
+            Shaxsiy kabinet
+          </span>
+          <h2 id="phProfileTitle" class="text-2xl font-black text-gray-900 tracking-tight">
+            Mening <span class="gradient-text">profilim</span>
+          </h2>
+
+          <span
+            data-avatar
+            class="ph-avatar w-24 h-24 text-4xl ring-4 ring-emerald-500/30 mx-auto mt-4"
+            aria-hidden="true"
+          ></span>
+          <p id="phViewName" class="text-lg font-bold text-gray-900 mt-3 break-words"></p>
+          <p data-user-email class="text-sm text-gray-500 break-all"></p>
+
+          <div class="flex flex-wrap items-center justify-center gap-2 mt-4">
+            <button
+              id="phPhotoBtn"
+              type="button"
+              class="px-4 py-2 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg cursor-pointer transition-colors"
+            >
+              Rasm yuklash
+            </button>
+            <button
+              id="phPhotoRemove"
+              type="button"
+              style="display: none"
+              class="px-4 py-2 text-xs font-bold text-gray-600 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg cursor-pointer transition-colors"
+            >
+              Rasmni o'chirish
+            </button>
+            <input id="phPhotoInput" type="file" accept="image/*" style="display: none" />
+          </div>
+          <p class="text-[11px] text-gray-500 mt-2">
+            Rasm qo'ymasangiz, email'ning bosh harfi ko'rsatiladi.
+          </p>
+        </div>
+
+        <dl class="grid grid-cols-2 gap-3 text-xs mt-5 border-t border-gray-200 pt-4">
+          <div>
+            <dt class="font-semibold text-gray-500 uppercase">Ro'yxatdan o'tgan</dt>
+            <dd id="phCreated" class="font-medium text-gray-900 mt-0.5"></dd>
+          </div>
+          <div>
+            <dt class="font-semibold text-gray-500 uppercase">Oxirgi kirish</dt>
+            <dd id="phLoginAt" class="font-medium text-gray-900 mt-0.5"></dd>
+          </div>
+        </dl>
+
+        <form id="phProfileForm" class="space-y-4 mt-5" novalidate>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label for="phFirst" class="block text-xs font-medium text-gray-700 mb-1">Ism</label>
+              <input id="phFirst" type="text" maxlength="40" autocomplete="given-name" placeholder="Ismingiz"
+                class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors" />
+            </div>
+            <div>
+              <label for="phLast" class="block text-xs font-medium text-gray-700 mb-1">Familya</label>
+              <input id="phLast" type="text" maxlength="40" autocomplete="family-name" placeholder="Familyangiz"
+                class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors" />
+            </div>
+          </div>
+
+          <div>
+            <label for="phProfEmail" class="block text-xs font-medium text-gray-700 mb-1">Email</label>
+            <div class="flex items-center gap-2">
+              <input id="phProfEmail" type="email" inputmode="email" autocomplete="email" readonly
+                class="min-w-0 flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors" />
+              <button id="phEmailBtn" type="button"
+                class="shrink-0 px-3 py-2 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg cursor-pointer transition-colors">
+                O'zgartirish
+              </button>
+              <button id="phEmailCancel" type="button" style="display: none"
+                class="shrink-0 px-3 py-2 text-xs font-bold text-gray-600 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg cursor-pointer transition-colors">
+                Bekor
+              </button>
+            </div>
+            <p id="phEmailErr" style="display: none" class="text-xs font-semibold text-red-600 mt-1.5" role="alert"></p>
+          </div>
+
+          <div>
+            <label for="phPhone" class="block text-xs font-medium text-gray-700 mb-1">Telefon raqami</label>
+            <input id="phPhone" type="tel" maxlength="24" autocomplete="tel" placeholder="+998 (90) 000-00-00"
+              class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors" />
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label for="phAbout" class="block text-xs font-medium text-gray-700">O'zim haqimda</label>
+              <span id="phAboutCount" class="text-[11px] text-gray-500">0/300</span>
+            </div>
+            <textarea id="phAbout" rows="4" maxlength="300" placeholder="O'zingiz, kasbingiz yoki biznesingiz haqida qisqacha yozing..."
+              class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors resize-none"></textarea>
+          </div>
+
+          <p id="phSaved" style="display: none" class="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2" role="status"></p>
+          <p id="phSaveErr" style="display: none" class="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2" role="alert"></p>
+
+          <div class="flex flex-col sm:flex-row gap-3 pt-1">
+            <button type="submit"
+              class="flex-1 font-bold text-[13px] text-white py-2.5 rounded-[10px] b1 hover:opacity-95 transition-opacity cursor-pointer">
+              Saqlash
+            </button>
+            <button type="button" data-logout
+              class="flex-1 font-bold text-[13px] text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 py-2.5 rounded-[10px] transition-colors cursor-pointer">
+              Chiqish
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- LOGIN va PROFIL mantiqi -->
+    <script>
+      (function () {
+        var root = document.documentElement;
+        function $(id) {
+          return document.getElementById(id);
+        }
+
+        // Login oynasi
+        var gateForm = $("phLoginForm");
+        var emailEl = $("phEmail");
+        var codeEl = $("phCode");
+        var errEl = $("phError");
+        var hintEl = $("phHint");
+        var toggleBtn = $("phToggleCode");
+
+        // Profil oynasi
+        var modal = $("phProfileModal");
+        var firstEl = $("phFirst");
+        var lastEl = $("phLast");
+        var emailInput = $("phProfEmail");
+        var emailBtn = $("phEmailBtn");
+        var emailCancel = $("phEmailCancel");
+        var emailErr = $("phEmailErr");
+        var phoneEl = $("phPhone");
+        var aboutEl = $("phAbout");
+        var aboutCount = $("phAboutCount");
+        var photoInput = $("phPhotoInput");
+        var photoBtn = $("phPhotoBtn");
+        var photoRemove = $("phPhotoRemove");
+        var savedEl = $("phSaved");
+        var saveErrEl = $("phSaveErr");
+        var editingEmail = false;
+
+        function fmtDate(t) {
+          if (!t) return "-";
+          return new Date(t).toLocaleString("uz-UZ", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+        }
+        function show(el, text) {
+          if (text !== undefined) el.textContent = text;
+          el.style.display = "block";
+        }
+        function hide(el) {
+          el.style.display = "none";
+        }
+
+        // ---------- Avatar: rasm yoki email'ning bosh harfi (random rangda) ----------
+        function renderAvatars() {
+          var u = PHAuth.user();
+          var p = PHAuth.profile();
+          document.querySelectorAll("[data-avatar]").forEach(function (el) {
+            el.textContent = "";
+            if (!u || !p) return;
+            if (p.photo) {
+              el.style.background = "transparent";
+              var img = document.createElement("img");
+              img.src = p.photo;
+              img.alt = "";
+              el.appendChild(img);
+            } else {
+              el.style.background = p.color;
+              el.textContent = u.email.charAt(0).toUpperCase();
+            }
+          });
+        }
+
+        function fillUser() {
+          var u = PHAuth.user();
+          document.querySelectorAll("[data-user-email]").forEach(function (el) {
+            el.textContent = u ? u.email : "";
+          });
+          renderAvatars();
+        }
+
+        // ---------- Login oynasi ----------
+        function updateHint() {
+          hintEl.style.display = PHAuth.hasAccount(emailEl.value) ? "block" : "none";
+        }
+
+        function unlock() {
+          root.classList.remove("ph-locked");
+          fillUser();
+          window.scrollTo(0, 0);
+          // yashirin turgan grafik to'g'ri o'lchamga kelishi uchun
+          setTimeout(function () {
+            window.dispatchEvent(new Event("resize"));
+          }, 60);
+        }
+
+        function closeDrawer() {
+          try {
+            var btn = document.querySelector('[data-drawer-hide="drawer-navigation"]');
+            var drawer = $("drawer-navigation");
+            if (btn && drawer && !drawer.classList.contains("-translate-x-full")) {
+              btn.click();
+            }
+          } catch (e) {}
+        }
+
+        function lock() {
+          closeDrawer();
+          closeProfile();
+          root.classList.add("ph-locked");
+          codeEl.value = "";
+          codeEl.type = "password";
+          toggleBtn.textContent = "Ko'rsat";
+          emailEl.value = PHAuth.lastEmail();
+          hide(errEl);
+          updateHint();
+          window.scrollTo(0, 0);
+          setTimeout(function () {
+            (emailEl.value ? codeEl : emailEl).focus();
+          }, 0);
+        }
+
+        emailEl.value = PHAuth.lastEmail();
+        updateHint();
+        emailEl.addEventListener("input", function () {
+          hide(errEl);
+          updateHint();
+        });
+        codeEl.addEventListener("input", function () {
+          hide(errEl);
+        });
+
+        toggleBtn.addEventListener("click", function () {
+          var visible = codeEl.type === "password";
+          codeEl.type = visible ? "text" : "password";
+          toggleBtn.textContent = visible ? "Yashir" : "Ko'rsat";
+        });
+
+        gateForm.addEventListener("submit", function (e) {
+          e.preventDefault();
+          var res = PHAuth.login(emailEl.value, codeEl.value);
+          if (!res.ok) {
+            show(errEl, res.error);
+            (res.error.indexOf("Kod") === 0 ? codeEl : emailEl).focus();
+            return;
+          }
+          codeEl.value = "";
+          unlock();
+        });
+
+        // ---------- Chiqish va profilni ochish ----------
+        document.addEventListener("click", function (e) {
+          var t = e.target;
+          if (!t || !t.closest) return;
+
+          if (t.closest("[data-logout]")) {
+            PHAuth.logout();
+            lock();
+            return;
+          }
+
+          // "Profil" havolasi sahifaga o'tmasdan profil oynasini ochadi
+          var a = t.closest('a[href$="profil.html"]');
+          if (a) {
+            e.preventDefault();
+            openProfile();
+          }
+        });
+
+        // Boshqa tabda kirilsa/chiqilsa shu tab ham yangilanadi
+        window.addEventListener("storage", function (e) {
+          if (e.key !== "ph_user") return;
+          if (PHAuth.isLoggedIn()) unlock();
+          else lock();
+        });
+
+        // ---------- Profil ----------
+        function clearMessages() {
+          hide(savedEl);
+          hide(saveErrEl);
+        }
+        function saved(text) {
+          hide(saveErrEl);
+          show(savedEl, text);
+        }
+        function failed(text) {
+          hide(savedEl);
+          show(saveErrEl, text);
+        }
+
+        function setEmailMode(edit) {
+          editingEmail = edit;
+          emailInput.readOnly = !edit;
+          emailBtn.textContent = edit ? "Tasdiqlash" : "O'zgartirish";
+          emailCancel.style.display = edit ? "inline-block" : "none";
+          if (!edit) {
+            var u = PHAuth.user();
+            emailInput.value = u ? u.email : "";
+            hide(emailErr);
+          }
+        }
+
+        function updateAboutCount() {
+          aboutCount.textContent = aboutEl.value.length + "/300";
+        }
+
+        function renderProfile() {
+          var user = PHAuth.user();
+          var p = PHAuth.profile();
+          if (!user || !p) return;
+          $("phViewName").textContent = PHAuth.displayName(p);
+          $("phCreated").textContent = fmtDate(p.createdAt);
+          $("phLoginAt").textContent = fmtDate(user.loginAt);
+          firstEl.value = p.firstName;
+          lastEl.value = p.lastName;
+          phoneEl.value = p.phone;
+          aboutEl.value = p.about;
+          photoRemove.style.display = p.photo ? "inline-block" : "none";
+          updateAboutCount();
+          setEmailMode(false);
+          clearMessages();
+          fillUser();
+        }
+
+        function openProfile() {
+          if (!PHAuth.isLoggedIn()) return;
+          renderProfile();
+          modal.style.display = "flex";
+          document.body.style.overflow = "hidden";
+          setTimeout(function () {
+            firstEl.focus();
+          }, 0);
+        }
+        function closeProfile() {
+          modal.style.display = "none";
+          document.body.style.overflow = "";
+          editingEmail = false;
+        }
+
+        $("phProfileClose").addEventListener("click", closeProfile);
+        $("phProfileBackdrop").addEventListener("click", closeProfile);
+        document.addEventListener("keydown", function (e) {
+          if (e.key !== "Escape" || modal.style.display !== "flex") return;
+          if (editingEmail) setEmailMode(false);
+          else closeProfile();
+        });
+
+        // --- Rasm yuklash (kvadratga kesilib, 256x256 ga kichraytiriladi) ---
+        function processImage(file) {
+          return new Promise(function (resolve, reject) {
+            if (!file || !/^image\//.test(file.type)) {
+              reject(new Error("Faqat rasm faylini tanlang."));
+              return;
+            }
+            if (file.size > 8 * 1024 * 1024) {
+              reject(new Error("Rasm hajmi 8 MB dan oshmasligi kerak."));
+              return;
+            }
+            var reader = new FileReader();
+            reader.onerror = function () {
+              reject(new Error("Rasmni o'qib bo'lmadi."));
+            };
+            reader.onload = function () {
+              var img = new Image();
+              img.onerror = function () {
+                reject(new Error("Bu rasm formati qo'llab-quvvatlanmaydi."));
+              };
+              img.onload = function () {
+                var size = 256;
+                var canvas = document.createElement("canvas");
+                canvas.width = size;
+                canvas.height = size;
+                var c2d = canvas.getContext("2d");
+                var s = Math.min(img.width, img.height);
+                c2d.fillStyle = "#ffffff";
+                c2d.fillRect(0, 0, size, size);
+                c2d.drawImage(
+                  img,
+                  (img.width - s) / 2,
+                  (img.height - s) / 2,
+                  s,
+                  s,
+                  0,
+                  0,
+                  size,
+                  size,
+                );
+                resolve(canvas.toDataURL("image/jpeg", 0.85));
+              };
+              img.src = reader.result;
+            };
+            reader.readAsDataURL(file);
+          });
+        }
+
+        photoBtn.addEventListener("click", function () {
+          photoInput.click();
+        });
+        photoInput.addEventListener("change", function () {
+          var file = photoInput.files && photoInput.files[0];
+          photoInput.value = "";
+          if (!file) return;
+          processImage(file)
+            .then(function (url) {
+              if (!PHAuth.saveProfile({ photo: url })) {
+                failed("Rasmni saqlab bo'lmadi. Brauzer xotirasi to'lgan bo'lishi mumkin.");
+                return;
+              }
+              photoRemove.style.display = "inline-block";
+              renderAvatars();
+              saved("Rasm yangilandi.");
+            })
+            .catch(function (err) {
+              failed(err.message);
+            });
+        });
+        photoRemove.addEventListener("click", function () {
+          if (PHAuth.saveProfile({ photo: "" })) {
+            photoRemove.style.display = "none";
+            renderAvatars();
+            saved("Rasm o'chirildi. Email'ning bosh harfi ko'rsatiladi.");
+          }
+        });
+
+        // --- Emailni o'zgartirish ---
+        function confirmEmail() {
+          var res = PHAuth.changeEmail(emailInput.value);
+          if (!res.ok) {
+            show(emailErr, res.error);
+            emailInput.focus();
+            return;
+          }
+          setEmailMode(false);
+          fillUser();
+          saved("Email o'zgartirildi.");
+        }
+        emailBtn.addEventListener("click", function () {
+          if (!editingEmail) {
+            clearMessages();
+            setEmailMode(true);
+            emailInput.focus();
+            emailInput.select();
+          } else {
+            confirmEmail();
+          }
+        });
+        emailCancel.addEventListener("click", function () {
+          setEmailMode(false);
+        });
+        emailInput.addEventListener("keydown", function (e) {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            if (editingEmail) confirmEmail();
+          }
+        });
+        emailInput.addEventListener("input", function () {
+          hide(emailErr);
+        });
+
+        // --- Ism, familya, telefon, o'zi haqida ---
+        phoneEl.addEventListener("input", function () {
+          phoneEl.value = phoneEl.value.replace(/[^\d+()\-\s]/g, "");
+          clearMessages();
+        });
+        [firstEl, lastEl].forEach(function (el) {
+          el.addEventListener("input", clearMessages);
+        });
+        aboutEl.addEventListener("input", function () {
+          updateAboutCount();
+          clearMessages();
+        });
+
+        $("phProfileForm").addEventListener("submit", function (e) {
+          e.preventDefault();
+          var ok = PHAuth.saveProfile({
+            firstName: firstEl.value.trim(),
+            lastName: lastEl.value.trim(),
+            phone: phoneEl.value.trim(),
+            about: aboutEl.value.trim(),
+          });
+          if (!ok) {
+            failed("Saqlab bo'lmadi. Qayta urinib ko'ring.");
+            return;
+          }
+          $("phViewName").textContent = PHAuth.displayName(PHAuth.profile());
+          saved("Ma'lumotlar saqlandi.");
+        });
+
+        // Sahifa ochilganda kirgan bo'lsa email va avatar to'ldiriladi
+        if (PHAuth.isLoggedIn()) fillUser();
+      })();
+    </script>
 
     <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script>
     <script src="./mani.js"></script>

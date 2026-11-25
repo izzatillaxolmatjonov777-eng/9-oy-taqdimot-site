@@ -1,1 +1,3255 @@
-endi boshliyman...
+<!doctype html>
+<html lang="uz">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pro Hisobchi — To'lovlar va Kommunal Xizmatlar Markazi</title>
+    <script>
+      (function () {
+        var USER_KEY = "ph_user",
+          PROFILES_KEY = "ph_profiles",
+          LAST_KEY = "ph_last_email";
+        var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+        var PALETTE = [
+          "#c62828",
+          "#ad1457",
+          "#6a1b9a",
+          "#4527a0",
+          "#283593",
+          "#1565c0",
+          "#00695c",
+          "#2e7d32",
+          "#bf360c",
+          "#4e342e",
+          "#37474f",
+          "#00838f",
+          "#8b4513",
+          "#1f2937",
+          "#2563eb",
+          "#16a34a",
+          "",
+        ];
+        var store;
+        try {
+          localStorage.setItem("__ph", "1");
+          localStorage.removeItem("__ph");
+          store = localStorage;
+        } catch (e) {
+          var mem = {};
+          store = {
+            getItem: function (k) {
+              return Object.prototype.hasOwnProperty.call(mem, k)
+                ? mem[k]
+                : null;
+            },
+            setItem: function (k, v) {
+              mem[k] = String(v);
+            },
+            removeItem: function (k) {
+              delete mem[k];
+            },
+          };
+        }
+        function read(k, fb) {
+          try {
+            var v = JSON.parse(store.getItem(k));
+            return v === null || v === undefined ? fb : v;
+          } catch (e) {
+            return fb;
+          }
+        }
+        function write(k, v) {
+          try {
+            store.setItem(k, JSON.stringify(v));
+            return true;
+          } catch (e) {
+            return false;
+          }
+        }
+        function nameFromEmail(email) {
+          return String(email || "")
+            .split("@")[0]
+            .replace(/[._-]+/g, " ")
+            .trim()
+            .split(" ")
+            .map(function (w) {
+              return w.charAt(0).toUpperCase() + w.slice(1);
+            })
+            .join(" ");
+        }
+        function randomColor() {
+          return PALETTE[Math.floor(Math.random() * PALETTE.length)];
+        }
+        function splitName(full) {
+          var parts = String(full || "")
+            .trim()
+            .split(/\s+/)
+            .filter(Boolean);
+          return { first: parts[0] || "", last: parts.slice(1).join(" ") };
+        }
+        function normalize(raw, email) {
+          raw = raw || {};
+          var p = {
+            email: email,
+            firstName: String(raw.firstName || ""),
+            lastName: String(raw.lastName || ""),
+            phone: String(raw.phone || ""),
+            about: String(raw.about || ""),
+            photo: String(raw.photo || ""),
+            color: raw.color || randomColor(),
+            createdAt: raw.createdAt || Date.now(),
+          };
+          if (
+            !p.firstName &&
+            !p.lastName &&
+            raw.name &&
+            raw.name !== nameFromEmail(email)
+          ) {
+            var s = splitName(raw.name);
+            p.firstName = s.first;
+            p.lastName = s.last;
+          }
+          return p;
+        }
+        function getProfile(email) {
+          var profiles = read(PROFILES_KEY, {}),
+            raw = profiles[email];
+          if (!raw) return null;
+          var p = normalize(raw, email);
+          if (JSON.stringify(raw) !== JSON.stringify(p)) {
+            profiles[email] = p;
+            write(PROFILES_KEY, profiles);
+          }
+          return p;
+        }
+        var Auth = {
+          user: function () {
+            return read(USER_KEY, null);
+          },
+          isLoggedIn: function () {
+            var u = this.user();
+            return !!(u && u.email);
+          },
+          lastEmail: function () {
+            return read(LAST_KEY, "");
+          },
+          hasAccount: function (email) {
+            email = String(email || "")
+              .trim()
+              .toLowerCase();
+            return !!(email && read(PROFILES_KEY, {})[email]);
+          },
+          profile: function () {
+            var u = this.user();
+            return u ? getProfile(u.email) : null;
+          },
+          displayName: function (p) {
+            if (!p) return "Foydalanuvchi";
+            var full = (p.firstName + " " + p.lastName).trim();
+            return full || nameFromEmail(p.email) || "Foydalanuvchi";
+          },
+          login: function (email, code) {
+            email = String(email || "")
+              .trim()
+              .toLowerCase();
+            code = String(code || "").trim();
+            if (!EMAIL_RE.test(email))
+              return { ok: false, error: "Email manzilini to'g'ri kiriting." };
+            if (!code) return { ok: false, error: "Kodni kiriting." };
+            var profiles = read(PROFILES_KEY, {});
+            profiles[email] = normalize(profiles[email], email);
+            write(LAST_KEY, email);
+            if (
+              !write(PROFILES_KEY, profiles) ||
+              !write(USER_KEY, { email: email, loginAt: Date.now() })
+            )
+              return {
+                ok: false,
+                error: "Saqlashda xatolik. Qayta urinib ko'ring.",
+              };
+            return { ok: true };
+          },
+          saveProfile: function (patch) {
+            var u = this.user();
+            if (!u) return false;
+            var profiles = read(PROFILES_KEY, {}),
+              p = normalize(profiles[u.email], u.email);
+            ["firstName", "lastName", "phone", "about", "photo"].forEach(
+              function (k) {
+                if (Object.prototype.hasOwnProperty.call(patch, k))
+                  p[k] = String(patch[k] || "");
+              },
+            );
+            profiles[u.email] = p;
+            return write(PROFILES_KEY, profiles);
+          },
+          changeEmail: function (newEmail) {
+            var u = this.user();
+            if (!u) return { ok: false, error: "Avval hisobga kiring." };
+            newEmail = String(newEmail || "")
+              .trim()
+              .toLowerCase();
+            if (!EMAIL_RE.test(newEmail))
+              return { ok: false, error: "Email manzilini to'g'ri kiriting." };
+            if (newEmail === u.email)
+              return { ok: false, error: "Bu sizning hozirgi emailingiz." };
+            var profiles = read(PROFILES_KEY, {});
+            if (profiles[newEmail])
+              return {
+                ok: false,
+                error: "Bu email boshqa akkauntda saqlangan.",
+              };
+            var p = normalize(
+              profiles[u.email] || { createdAt: u.loginAt },
+              newEmail,
+            );
+            delete profiles[u.email];
+            profiles[newEmail] = p;
+            if (
+              !write(PROFILES_KEY, profiles) ||
+              !write(USER_KEY, { email: newEmail, loginAt: u.loginAt })
+            )
+              return {
+                ok: false,
+                error: "Saqlashda xatolik. Qayta urinib ko'ring.",
+              };
+            write(LAST_KEY, newEmail);
+            return { ok: true };
+          },
+          logout: function () {
+            try {
+              store.removeItem(USER_KEY);
+            } catch (e) {}
+          },
+        };
+        window.PHAuth = Auth;
+        if (!Auth.isLoggedIn())
+          document.documentElement.classList.add("ph-guest");
+      })();
+    </script>
+    <link
+      href="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        overflow-x: hidden;
+        background: #f8fafc;
+        color: #111827;
+        font-family:
+          "Inter",
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          sans-serif;
+      }
+      .gradient-text {
+        background: linear-gradient(90deg, #16a34a, #2563eb);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        color: transparent;
+      }
+      .b1 {
+        background: linear-gradient(90deg, #16a34a, #2563eb);
+      }
+      .card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px -15px rgba(15, 23, 42, 0.2);
+      }
+      .seg-on {
+        background: linear-gradient(90deg, #16a34a, #2563eb);
+        color: #fff;
+      }
+      .meth input:checked + div {
+        border-color: #059669;
+        background: #ecfdf5;
+        box-shadow: 0 0 0 3px #10b98133;
+      }
+      .nav a:focus {
+        background: #c2fad7;
+        padding: 5px;
+        border-radius: 6px;
+      }
+    </style>
+    <style>
+      #authGate {
+        display: none !important;
+      }
+      html.ph-locked #authGate {
+        display: flex !important;
+      }
+      html.ph-locked body {
+        overflow: hidden;
+      }
+      .ph-gate {
+        position: fixed;
+        inset: 0;
+        z-index: 10000;
+        overflow-y: auto;
+        background: #f6fcf8;
+        align-items: center;
+        justify-content: center;
+        padding: 24px 16px;
+      }
+      html.ph-guest #phProfileLink,
+      html.ph-guest #drawerUser {
+        display: none !important;
+      }
+      html:not(.ph-guest) #phSignInBtn,
+      html:not(.ph-guest) #drawerSignIn {
+        display: none !important;
+      }
+      .ph-avatar {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 9999px;
+        overflow: hidden;
+        color: #fff;
+        font-weight: 700;
+        line-height: 1;
+        user-select: none;
+        background: #059669;
+        flex-shrink: 0;
+      }
+      .ph-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      #phProfEmail[readonly] {
+        background: #f9fafb;
+        color: #6b7280;
+        border-color: #e5e7eb;
+      }
+      .lift {
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s;
+      }
+      .lift:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 18px 36px -16px rgba(22, 163, 74, 0.35);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .lift {
+          transition: none;
+        }
+      }
+      .svc {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+      .svc .pay {
+        margin-top: auto;
+      }
+      .pwrap {
+        container-type: inline-size;
+      }
+      .pcard {
+        position: relative;
+        aspect-ratio: 85.6 / 54;
+        border-radius: 16px;
+        padding: clamp(12px, 5cqw, 18px);
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 4px;
+        overflow: hidden;
+        box-shadow: 0 14px 26px -14px rgba(15, 23, 42, 0.55);
+      }
+      .pcard::before,
+      .pcard::after {
+        content: "";
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        pointer-events: none;
+      }
+      .pcard::before {
+        width: 55%;
+        aspect-ratio: 1;
+        right: -14%;
+        top: -30%;
+      }
+      .pcard::after {
+        width: 40%;
+        aspect-ratio: 1;
+        right: 4%;
+        bottom: -34%;
+      }
+      .pcard > * {
+        position: relative;
+        z-index: 1;
+      }
+      .pbtn {
+        padding: 3px 10px;
+        font-size: 11px;
+        font-weight: 700;
+        color: #fff;
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        border-radius: 8px;
+        cursor: pointer;
+      }
+      .pbtn:hover {
+        background: rgba(255, 255, 255, 0.32);
+      }
+    </style>
+  </head>
+  <body class="font-sans antialiased text-gray-800">
+    <div id="authGate" class="ph-gate">
+      <div class="w-full max-w-[440px]">
+        <div
+          class="bg-white/80 backdrop-blur-md border border-emerald-200/60 rounded-3xl p-8 sm:p-10 shadow-xl shadow-emerald-500/5"
+        >
+          <button
+            id="phGateClose"
+            type="button"
+            aria-label="Yopish"
+            class="ml-auto mb-2 block text-sm font-semibold text-gray-500 hover:text-emerald-600 cursor-pointer"
+          >
+            ✕ Orqaga qaytish
+          </button>
+          <div class="flex items-center justify-center gap-3 mb-6">
+            <img
+              src="./images/image.png"
+              class="w-12 h-12 rounded-xl shadow-md border border-green-100 object-cover"
+              alt="Pro Hisobchi Logo"
+            />
+            <div class="flex flex-col">
+              <span
+                class="text-[9px] font-extrabold uppercase tracking-widest text-emerald-700 bg-emerald-100 px-1.5 py-[1px] rounded w-fit"
+                >PRO</span
+              >
+              <span class="text-xl font-black tracking-tight gradient-text"
+                >Pro Hisobchi</span
+              >
+            </div>
+          </div>
+          <div class="text-center mb-6">
+            <span
+              class="inline-flex items-center gap-2 px-3 py-1 mb-3 text-xs font-semibold text-emerald-800 bg-emerald-100/80 rounded-full border border-emerald-200"
+              >Xavfsiz kirish</span
+            >
+            <h1
+              class="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight"
+            >
+              Hisobingizga <span class="gradient-text">kiring</span>
+            </h1>
+            <p class="text-gray-600 text-sm mt-2">
+              Email manzilingiz va kodni kiriting.
+            </p>
+          </div>
+          <form id="phLoginForm" class="space-y-4" novalidate>
+            <div>
+              <label
+                for="phEmail"
+                class="block text-xs font-medium text-gray-700 mb-1"
+                >Email</label
+              >
+              <input
+                id="phEmail"
+                type="email"
+                inputmode="email"
+                autocomplete="email"
+                placeholder="misol@gmail.com"
+                class="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+              />
+            </div>
+            <div>
+              <label
+                for="phCode"
+                class="block text-xs font-medium text-gray-700 mb-1"
+                >Kod</label
+              >
+              <div class="relative">
+                <input
+                  id="phCode"
+                  type="password"
+                  autocomplete="off"
+                  placeholder="Istalgan kodni kiriting"
+                  class="w-full pl-3 pr-16 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                />
+                <button
+                  id="phToggleCode"
+                  type="button"
+                  class="absolute inset-y-0 right-0 px-3 text-xs font-semibold text-emerald-700 hover:text-emerald-800 cursor-pointer"
+                >
+                  Ko'rsat
+                </button>
+              </div>
+            </div>
+            <p
+              id="phHint"
+              style="display: none"
+              class="text-xs font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2"
+            >
+              Bu akkaunt saqlangan. Kodni kiritsangiz, profilingiz va
+              ma'lumotlaringiz tiklanadi.
+            </p>
+            <p
+              id="phError"
+              style="display: none"
+              class="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2"
+              role="alert"
+            ></p>
+            <button
+              type="submit"
+              class="w-full font-bold text-[14px] text-white py-3 rounded-[10px] b1 hover:opacity-95 transition-opacity cursor-pointer"
+            >
+              Kirish
+            </button>
+          </form>
+        </div>
+        <p class="text-center text-xs text-gray-500 mt-5">
+          © 2026 Pro Hisobchi. Barcha huquqlar himoyalangan.
+        </p>
+      </div>
+    </div>
+
+    <header
+      class="fixed top-0 left-0 w-full z-40 border-b border-green-200/50 shadow-sm"
+      style="
+        background-color: rgba(255, 255, 255, 0.188);
+        backdrop-filter: blur(6px);
+      "
+    >
+      <div
+        class="max-w-[1200px] mx-auto w-full px-4 sm:px-6 py-3 flex items-center justify-between"
+      >
+        <a href="./index.html" class="flex items-center gap-3 shrink-0">
+          <img
+            src="./images/image.png"
+            class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl shadow-md border border-green-100 object-cover"
+            alt="Pro Hisobchi Logo"
+          />
+          <div class="flex flex-col">
+            <span
+              class="text-[9px] font-extrabold uppercase tracking-widest text-emerald-700 bg-emerald-100 px-1.5 py-[1px] rounded w-fit"
+              >PRO</span
+            >
+            <h2
+              class="text-lg sm:text-xl font-black tracking-tight gradient-text"
+            >
+              Pro Hisobchi
+            </h2>
+          </div>
+        </a>
+        <nav class="nav hidden md:flex items-center gap-8">
+          <a
+            href="./index.html"
+            class="text-sm font-semibold text-gray-700 hover:text-emerald-600 transition-colors"
+            >Bosh sahifa</a
+          >
+          <a
+            href="./xizmatlar.html"
+            class="text-sm font-semibold text-gray-700 hover:text-emerald-600 transition-colors"
+            >Xizmatlar</a
+          >
+          <a
+            href="./to'lovlar.html"
+            class="text-sm font-bold text-emerald-600"
+            aria-current="page"
+            >To'lovlar</a
+          >
+          <a
+            href="./aloqa.html"
+            class="text-sm font-semibold text-gray-700 hover:text-emerald-600 transition-colors"
+            >Aloqa</a
+          >
+        </nav>
+        <div class="flex items-center gap-3 shrink-0">
+          <button
+            type="button"
+            id="phSignInBtn"
+            data-open-login
+            class="px-5 py-2 text-sm font-bold text-white rounded-xl b1 cursor-pointer hover:opacity-95 transition-opacity"
+          >
+            Kirish
+          </button>
+          <a href="./profil.html" id="phProfileLink" class="relative block">
+            <div class="flex items-center gap-[10px]">
+              <span
+                data-avatar
+                class="ph-avatar w-9 h-9 sm:w-10 sm:h-10 ring-2 ring-emerald-500/60 text-base"
+                role="img"
+                aria-label="Profil"
+              ></span>
+              <div>
+                <p
+                  class="gradient-text text-[20px] max-[768px]:hidden font-bold"
+                >
+                  Profil
+                </p>
+              </div>
+            </div>
+          </a>
+          <button
+            type="button"
+            data-drawer-target="drawer-navigation"
+            data-drawer-show="drawer-navigation"
+            aria-controls="drawer-navigation"
+            class="md:hidden p-2 text-gray-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all cursor-pointer"
+          >
+            <svg
+              class="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h16"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div
+      id="drawer-navigation"
+      class="fixed top-0 left-0 z-50 h-screen p-5 overflow-y-auto transition-transform -translate-x-full bg-white w-80 border-e border-emerald-100 shadow-2xl"
+      tabindex="-1"
+    >
+      <div
+        class="pb-4 mb-4 border-b border-gray-100 flex items-center justify-between"
+      >
+        <span class="text-base font-bold gradient-text">Pro Hisobchi</span>
+        <button
+          type="button"
+          data-drawer-hide="drawer-navigation"
+          aria-controls="drawer-navigation"
+          class="text-gray-400 hover:bg-emerald-50 hover:text-emerald-600 rounded-xl w-9 h-9 flex items-center justify-center cursor-pointer"
+        >
+          ✕<span class="sr-only">Menyuni yopish</span>
+        </button>
+      </div>
+      <ul class="space-y-2 font-medium text-sm font-semibold">
+        <li>
+          <a
+            href="./index.html"
+            class="block p-3 text-gray-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-600"
+            >Bosh sahifa</a
+          >
+        </li>
+        <li>
+          <a
+            href="./xizmatlar.html"
+            class="block p-3 text-gray-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-600"
+            >Xizmatlar</a
+          >
+        </li>
+        <li>
+          <a
+            href="./to'lovlar.html"
+            class="block p-3 rounded-xl bg-emerald-50 text-emerald-600"
+            >To'lovlar</a
+          >
+        </li>
+        <li>
+          <a
+            href="./aloqa.html"
+            class="block p-3 text-gray-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-600"
+            >Aloqa</a
+          >
+        </li>
+      </ul>
+      <button
+        type="button"
+        id="drawerSignIn"
+        data-open-login
+        class="mt-4 w-full p-3 rounded-xl text-sm font-bold text-white b1 cursor-pointer"
+      >
+        Kirish
+      </button>
+      <div id="drawerUser" class="mt-4 border-t border-gray-100 pt-4">
+        <p class="text-xs text-gray-500 pb-2 truncate">
+          Kirgan:
+          <span data-user-email class="font-semibold text-gray-700"></span>
+        </p>
+        <button
+          type="button"
+          data-logout
+          class="w-full flex items-center justify-center gap-2 p-3 rounded-xl text-sm font-bold text-red-600 bg-red-50 hover:bg-red-100 transition-all cursor-pointer"
+        >
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 16l-4-4m0 0 4-4m-4 4h11"
+            />
+          </svg>
+          Chiqish
+        </button>
+      </div>
+    </div>
+
+    <main
+      class="pt-28 sm:pt-32 pb-16 px-4 sm:px-6 max-w-[1200px] mx-auto space-y-14"
+    >
+      <!-- SECTION 1: HERO + BALANS -->
+      <section
+        id="s1"
+        class="card p-6 sm:p-9 relative overflow-hidden"
+        style="background: linear-gradient(135deg, #ecfdf5, #eff6ff)"
+      >
+        <div class="grid md:grid-cols-2 gap-8 items-center">
+          <div class="min-w-0">
+            <div class="flex items-center gap-3 mb-5">
+              <span
+                class="w-14 h-14 rounded-2xl b1 text-white flex items-center justify-center shadow-md shrink-0"
+                ><svg
+                  class="w-7 h-7"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z" /></svg
+              ></span>
+              <span class="font-extrabold text-xl"
+                >Pro<span class="gradient-text">hisobchi</span></span
+              >
+            </div>
+            <h1
+              class="font-extrabold leading-tight"
+              style="font-size: clamp(1.9rem, 5vw, 3rem)"
+            >
+              Prohisobchi <span class="gradient-text">To'lovlar Markazi</span>
+            </h1>
+            <p class="text-gray-600 mt-3 text-sm sm:text-base">
+              Gaz, svet, suv, axlat, internet, mobil aloqa, domofon va mulk
+              to'lovlarini bitta joydan nazorat qiling. Muddat kelganda tugma
+              qizarib, sizni ogohlantiradi.
+            </p>
+            <div class="flex flex-wrap gap-3 mt-6">
+              <button
+                type="button"
+                data-cards-top
+                class="inline-flex items-center gap-2 px-6 py-3 text-sm font-bold text-white rounded-xl b1 hover:opacity-95 cursor-pointer"
+              >
+                <svg
+                  class="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M12 5v14M5 12h14" /></svg
+                >Balansni to'ldirish
+              </button>
+              <a
+                href="#s4"
+                class="px-6 py-3 text-sm font-bold text-gray-700 bg-white border border-gray-300 hover:border-emerald-500 hover:text-emerald-700 rounded-xl"
+                >Xizmatlarga o'tish</a
+              >
+            </div>
+          </div>
+          <div
+            class="rounded-3xl p-6 bg-white/80 border border-white shadow-xl min-w-0"
+          >
+            <div class="flex justify-between items-center text-gray-500">
+              <span>Umumiy balans</span
+              ><svg
+                class="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M3 7h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM3 7l2-3h12M16 14h2"
+                />
+              </svg>
+            </div>
+            <div
+              id="hBal"
+              class="font-black gradient-text mt-1 break-words"
+              style="font-size: clamp(1.8rem, 6vw, 2.4rem)"
+            ></div>
+            <div
+              class="mt-5 pt-4 border-t border-gray-200 flex justify-between items-end gap-3"
+            >
+              <div>
+                <div class="text-sm text-gray-500">Joriy qarz</div>
+                <div id="hDebt" class="text-2xl font-black"></div>
+              </div>
+              <div class="text-xs text-right text-gray-500">
+                Real vaqtda yangilanadi<br /><span
+                  id="hClock"
+                  class="font-bold text-gray-800"
+                ></span>
+              </div>
+            </div>
+            <p class="mt-4 text-xs text-gray-500">
+              Salom, <b id="hName" class="text-gray-800"></b> · ID:
+              <b id="hId" class="font-mono text-gray-800"></b>
+            </p>
+            <p id="hCard" class="text-xs text-gray-500 mt-1"></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 2: STATISTIKA -->
+      <section id="s2" class="grid grid-cols-2 lg:grid-cols-4 gap-4"></section>
+
+      <!-- SECTION 3: YO'RIQNOMA -->
+      <section id="s3">
+        <div class="text-center max-w-2xl mx-auto mb-8">
+          <h2 class="text-2xl sm:text-4xl font-black">
+            To'lov <span class="gradient-text">4 qadamda</span>
+          </h2>
+          <p class="text-gray-600 text-sm mt-2">
+            Birinchi marta to'layotgan bo'lsangiz, shu tartibda bajaring.
+          </p>
+        </div>
+        <div class="relative">
+          <div
+            class="hidden lg:block absolute top-[42px] left-[12%] right-[12%] h-0.5 b1 opacity-30"
+          ></div>
+          <ol
+            id="guide"
+            class="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5"
+          ></ol>
+        </div>
+      </section>
+
+      <!-- SECTION 4: ASOSIY XIZMATLAR -->
+      <section id="s4" style="scroll-margin-top: 90px">
+        <div class="flex flex-wrap items-end justify-between gap-4 mb-6">
+          <div class="min-w-0">
+            <h2 class="text-2xl sm:text-4xl font-black">
+              Asosiy <span class="gradient-text">kommunal xizmatlar</span>
+            </h2>
+            <p class="text-gray-600 text-sm mt-1">
+              Har bir xizmatning to'lov muddati alohida kuzatiladi. To'langach,
+              keyingi limit hisoblanadi.
+            </p>
+          </div>
+          <label
+            class="block text-xs font-medium text-gray-700 w-full sm:w-auto sm:min-w-[260px]"
+            >To'lov kartasi
+            <select
+              id="payCard"
+              class="mt-1 w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            ></select>
+          </label>
+        </div>
+        <div
+          id="coreGrid"
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5"
+        ></div>
+      </section>
+
+      <!-- SECTION 5: QO'SHIMCHA XIZMATLAR -->
+      <section id="s5">
+        <h2 class="text-2xl sm:text-4xl font-black">
+          Qo'shimcha <span class="gradient-text">raqamli xizmatlar</span>
+        </h2>
+        <p class="text-gray-600 text-sm mt-1 mb-6">
+          Internet, mobil aloqa, domofon va xususiy mulk (OSGO/ShIR) to'lovlari.
+        </p>
+        <div
+          id="extraGrid"
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5"
+        ></div>
+      </section>
+
+      <!-- SECTION 6: AVTO-TO'LOV -->
+      <section id="s6" class="card p-6 sm:p-8">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+          <div class="max-w-xl">
+            <h2 class="text-2xl sm:text-3xl font-black">
+              Avtomatik <span class="gradient-text">to'lovlar</span>
+            </h2>
+            <p class="text-sm text-gray-600 mt-1">
+              Yoqilsa, to'lov muddati kelganda summa balansdan o'zi yechiladi.
+              Balans yetmasa, to'lov o'tkazilmaydi.
+            </p>
+          </div>
+          <label class="inline-flex items-center gap-3 cursor-pointer">
+            <input type="checkbox" id="apOn" class="sr-only peer" />
+            <span
+              class="relative w-12 h-7 bg-gray-300 rounded-full transition-colors peer-checked:bg-emerald-600 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-6 after:h-6 after:bg-white after:rounded-full after:transition-transform peer-checked:after:translate-x-5"
+            ></span>
+            <b id="apLbl" class="text-sm text-gray-700">O'chiq</b>
+          </label>
+        </div>
+        <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <label class="block text-xs font-medium text-gray-700"
+            >Har oyning qaysi kunidan boshlab
+            <select
+              id="apDay"
+              class="mt-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            ></select>
+          </label>
+          <label class="block text-xs font-medium text-gray-700"
+            >To'lov kartasi
+            <select
+              id="apCard"
+              class="mt-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            ></select>
+          </label>
+        </div>
+      </section>
+
+      <!-- SECTION 7: TARIX -->
+      <section id="s7">
+        <div class="flex flex-wrap items-end justify-between gap-3 mb-4">
+          <h2 class="text-2xl sm:text-4xl font-black">
+            To'lovlar <span class="gradient-text">tarixi</span>
+          </h2>
+          <select
+            id="fSvc"
+            aria-label="Xizmat bo'yicha"
+            class="px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white"
+          ></select>
+        </div>
+        <div class="card overflow-x-auto">
+          <table class="w-full text-sm min-w-[680px]">
+            <thead class="text-xs uppercase text-gray-500 bg-gray-50">
+              <tr>
+                <th class="text-left p-3">Xizmat</th>
+                <th class="text-left p-3">Summa</th>
+                <th class="text-left p-3">Sana</th>
+                <th class="text-left p-3">Karta</th>
+                <th class="text-left p-3">Status</th>
+              </tr>
+            </thead>
+            <tbody id="hist"></tbody>
+          </table>
+        </div>
+        <button
+          type="button"
+          id="reset"
+          class="mt-3 text-xs font-semibold text-gray-500 hover:text-red-600 cursor-pointer"
+        >
+          Demo holatini tiklash
+        </button>
+      </section>
+
+      <!-- SECTION 8: KARTALAR VA BALANS -->
+      <section id="s8" class="card p-6 sm:p-8">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div class="min-w-0">
+            <h2 class="text-2xl sm:text-3xl font-black">
+              Mening <span class="gradient-text">kartalarim</span>
+            </h2>
+            <p class="text-sm text-gray-600 mt-1">
+              Uzcard, Humo yoki Visa kartangizni biriktiring (ko'pi bilan 10
+              ta), asosiy kartani tanlang va hisobni to'ldiring.
+            </p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button
+              type="button"
+              data-cards-add
+              class="inline-flex items-center gap-2 px-5 py-3 text-sm font-bold text-gray-700 bg-white border border-gray-300 hover:border-emerald-500 hover:text-emerald-700 rounded-xl cursor-pointer"
+            >
+              <svg
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                viewBox="0 0 24 24"
+              >
+                <path d="M2 5h20v14H2zM2 10h20" /></svg
+              >Karta qo'shish
+            </button>
+            <button
+              type="button"
+              data-cards-top
+              class="inline-flex items-center gap-2 px-5 py-3 text-sm font-bold text-white rounded-xl b1 hover:opacity-95 cursor-pointer"
+            >
+              <svg
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                viewBox="0 0 24 24"
+              >
+                <path d="M12 5v14M5 12h14" /></svg
+              >To'ldirish
+            </button>
+          </div>
+        </div>
+        <div
+          id="cardChips"
+          class="mt-5"
+          style="
+            display: grid;
+            grid-template-columns: repeat(
+              auto-fill,
+              minmax(min(100%, 270px), 1fr)
+            );
+            gap: 1rem;
+          "
+        ></div>
+      </section>
+
+      <!-- SECTION 9: XAVFSIZLIK VA YORDAM -->
+      <section
+        id="s9"
+        class="rounded-3xl p-6 sm:p-10 text-white"
+        style="
+          background: linear-gradient(120deg, #064e3b, #065f46 55%, #1e40af);
+        "
+      >
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+          <div>
+            <div class="flex flex-wrap gap-2 mb-4">
+              <span
+                class="inline-flex items-center gap-2 px-3 py-1 text-xs font-bold bg-white/15 border border-white/25 rounded-full"
+                ><svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4"
+                  /></svg
+                >SSL shifrlash</span
+              >
+              <span
+                class="inline-flex items-center gap-2 px-3 py-1 text-xs font-bold bg-white/15 border border-white/25 rounded-full"
+                ><svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"
+                  /></svg
+                >Himoyalangan to'lov</span
+              >
+            </div>
+            <h2 class="text-2xl sm:text-4xl font-black">
+              Xavfsizlik va
+              <span class="text-emerald-300">qo'llab-quvvatlash</span>
+            </h2>
+            <p class="text-emerald-50/90 text-sm mt-3">
+              Ma'lumotlar SSL shifrlash orqali himoyalangan ulanishda uzatiladi.
+              Karta ma'lumotlari faqat sizning brauzeringizda ko'rinadi, CVV esa
+              hech qayerda saqlanmaydi.
+            </p>
+            <a
+              href="https://t.me/prohisobchi_uz"
+              target="_blank"
+              rel="noopener"
+              class="inline-block mt-5 px-6 py-3 text-sm font-bold rounded-xl hover:opacity-90 transition-opacity"
+              style="color: #065f46; background: #ffffff; text-decoration: none"
+              >Yordam markaziga o'tish</a
+            >
+          </div>
+          <ul class="space-y-3 text-sm">
+            <li
+              class="rounded-2xl bg-white/10 border border-white/20 px-4 py-3"
+            >
+              Telefon:
+              <a class="font-bold" href="tel:+998901234567"
+                >+998 (90) 123-45-67</a
+              >
+            </li>
+            <li
+              class="rounded-2xl bg-white/10 border border-white/20 px-4 py-3"
+            >
+              Pochta:
+              <a class="font-bold" href="mailto:info@prohisobchi.uz"
+                >info@prohisobchi.uz</a
+              >
+            </li>
+            <li
+              class="rounded-2xl bg-white/10 border border-white/20 px-4 py-3"
+            >
+              Ish vaqti: Dushanba – Shanba, 09:00 – 18:00
+            </li>
+          </ul>
+        </div>
+      </section>
+    </main>
+
+    <footer
+      class="w-full overflow-hidden border-t border-gray-200 bg-white py-10 lg:py-[60px]"
+    >
+      <div class="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-[30px]">
+        <a href="./index.html" class="mb-4 flex items-center gap-3">
+          <img
+            src="./images/image.png"
+            class="h-11 w-11 shrink-0 rounded-xl border border-green-100 object-cover shadow-md"
+            alt="Pro Hisobchi Logo"
+          />
+          <div class="flex flex-col">
+            <span
+              class="w-fit rounded bg-emerald-100 px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-widest text-emerald-700"
+              >PRO</span
+            >
+            <h2 class="text-lg font-black tracking-tight text-gray-900">
+              Pro Hisobchi
+            </h2>
+          </div>
+        </a>
+        <div class="border-t border-gray-200 pt-5">
+          <p class="text-xs sm:text-sm text-gray-500">
+            © 2026 Pro Hisobchi. Barcha huquqlar himoyalangan.
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <!-- KARTALAR VA HISOBNI TO'LDIRISH -->
+    <div
+      id="cm"
+      style="display: none"
+      class="fixed inset-0 z-[9000] items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="cmT"
+    >
+      <div id="cmBack" class="absolute inset-0 bg-gray-900/50"></div>
+      <div
+        class="relative w-full max-w-[500px] max-h-[92vh] overflow-y-auto bg-white rounded-3xl shadow-2xl p-6 sm:p-7"
+      >
+        <button
+          id="cmX"
+          type="button"
+          aria-label="Yopish"
+          class="absolute top-4 right-4 w-9 h-9 rounded-xl text-gray-400 hover:bg-emerald-50 hover:text-emerald-600 cursor-pointer"
+        >
+          ✕
+        </button>
+        <h3 id="cmT" class="text-xl font-black">
+          Kartalar va <span class="gradient-text">balans</span>
+        </h3>
+        <p class="text-xs text-gray-500 mt-1">
+          Bu simulyatsiya: haqiqiy pul yechilmaydi. CVV hech qayerda
+          saqlanmaydi.
+        </p>
+        <h4 class="text-sm font-extrabold mt-5">Biriktirilgan kartalar</h4>
+        <div id="cmList" class="mt-2 space-y-2"></div>
+        <form
+          id="cmAdd"
+          class="mt-4 p-4 bg-gray-50 rounded-2xl space-y-3"
+          novalidate
+        >
+          <h4 class="text-sm font-extrabold">Karta qo'shish</h4>
+          <input
+            id="cNum"
+            inputmode="numeric"
+            autocomplete="off"
+            maxlength="19"
+            placeholder="8600 0000 0000 0000"
+            aria-label="Karta raqami"
+            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          />
+          <input
+            id="cName"
+            autocomplete="off"
+            maxlength="26"
+            placeholder="Karta egasi (ISM FAMILIYA)"
+            aria-label="Karta egasi"
+            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 uppercase"
+          />
+          <div class="grid grid-cols-2 gap-3">
+            <input
+              id="cExp"
+              inputmode="numeric"
+              autocomplete="off"
+              maxlength="5"
+              placeholder="MM/YY"
+              aria-label="Amal qilish muddati"
+              class="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+            <input
+              id="cCvv"
+              type="password"
+              inputmode="numeric"
+              autocomplete="off"
+              maxlength="3"
+              placeholder="CVV"
+              aria-label="CVV"
+              class="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+          </div>
+          <label class="flex items-center gap-2 text-xs text-gray-700"
+            ><input id="cMain" type="checkbox" class="accent-emerald-600" />
+            Asosiy karta qilish</label
+          >
+          <button
+            type="submit"
+            class="w-full px-5 py-2.5 text-sm font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl cursor-pointer"
+          >
+            Kartani biriktirish
+          </button>
+        </form>
+        <form id="cmTop" class="mt-4 space-y-3" novalidate>
+          <h4 class="text-sm font-extrabold">Hisobni to'ldirish</h4>
+          <select
+            id="tCard"
+            aria-label="Karta"
+            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white"
+          ></select>
+          <input
+            id="tAmt"
+            inputmode="numeric"
+            autocomplete="off"
+            placeholder="Summa (so'm), masalan 100000"
+            aria-label="Summa"
+            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          />
+          <div id="tChips" class="flex flex-wrap gap-2"></div>
+          <button
+            id="tGo"
+            type="submit"
+            class="w-full px-5 py-3 text-sm font-bold text-white rounded-xl b1 hover:opacity-95 cursor-pointer"
+          >
+            Hisobni to'ldirish
+          </button>
+        </form>
+        <p
+          id="cmMsg"
+          class="hidden mt-3 text-xs font-semibold rounded-lg px-3 py-2"
+          role="alert"
+        ></p>
+      </div>
+    </div>
+    <div
+      id="pm"
+      style="display: none"
+      class="fixed inset-0 z-[9100] items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="pmTitle"
+    >
+      <div id="pmBack" class="absolute inset-0 bg-gray-900/50"></div>
+      <div
+        class="relative w-full max-w-[440px] max-h-[92vh] overflow-y-auto bg-white rounded-3xl shadow-2xl p-6"
+      >
+        <button
+          id="pmX"
+          type="button"
+          aria-label="Yopish"
+          class="absolute top-4 right-4 w-9 h-9 rounded-xl text-gray-400 hover:bg-emerald-50 hover:text-emerald-600 cursor-pointer"
+        >
+          ✕
+        </button>
+        <h3 class="text-xl font-black pr-8">
+          To'lovni <span class="gradient-text">tasdiqlang</span>
+        </h3>
+        <div class="mt-4 rounded-2xl bg-gray-50 p-4">
+          <p id="pmTitle" class="font-extrabold"></p>
+          <p id="pmAmt" class="text-2xl font-black gradient-text mt-1"></p>
+        </div>
+        <label class="block text-xs font-medium text-gray-700 mt-4"
+          >Qaysi kartadan to'lanadi?
+          <select
+            id="pmCard"
+            class="mt-1 w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          ></select>
+        </label>
+        <p id="pmMsg" class="hidden" role="alert"></p>
+        <div class="mt-4 grid grid-cols-2 gap-3">
+          <button
+            id="pmCancel"
+            type="button"
+            class="px-4 py-3 text-sm font-bold text-gray-700 bg-white border border-gray-300 hover:border-emerald-500 rounded-xl cursor-pointer"
+          >
+            Bekor qilish
+          </button>
+          <button
+            id="pmGo"
+            type="button"
+            class="px-4 py-3 text-sm font-bold text-white rounded-xl b1 hover:opacity-95 cursor-pointer"
+          >
+            To'lash
+          </button>
+        </div>
+        <button
+          id="pmTop"
+          type="button"
+          class="mt-3 w-full text-xs font-bold text-emerald-700 hover:underline cursor-pointer"
+        >
+          Tanlangan kartani to'ldirish
+        </button>
+      </div>
+    </div>
+    <div
+      id="bonusNote"
+      style="display: none"
+      class="fixed top-24 right-4 left-4 sm:left-auto sm:w-[360px] z-[9600] items-start gap-3 rounded-2xl p-4 text-white shadow-2xl b1"
+      role="status"
+    >
+      <span
+        class="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center shrink-0"
+        ><svg
+          class="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 1 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"
+          /></svg
+      ></span>
+      <div class="min-w-0 flex-1">
+        <p class="font-extrabold">Xush kelibsiz bonusi!</p>
+        <p class="text-sm opacity-95 mt-0.5">
+          Balansingizga 1 000 000 so'm bonus qo'shildi. Bu bonus faqat bir marta
+          beriladi.
+        </p>
+      </div>
+      <button
+        type="button"
+        id="bonusX"
+        aria-label="Yopish"
+        class="w-8 h-8 rounded-lg hover:bg-white/20 cursor-pointer shrink-0"
+      >
+        ✕
+      </button>
+    </div>
+    <div
+      id="toast"
+      class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-[9500] max-w-[92vw] px-5 py-3 text-sm font-semibold text-white bg-gray-900 rounded-xl shadow-xl"
+      role="status"
+    ></div>
+
+    <!-- MEHMON OGOHLANTIRISH -->
+    <div
+      id="phGuestModal"
+      style="display: none"
+      class="fixed inset-0 z-[10002] items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div id="phGuestBackdrop" class="absolute inset-0 bg-gray-900/50"></div>
+      <div
+        class="relative w-full max-w-[400px] bg-white rounded-3xl border border-emerald-200/60 shadow-2xl p-7 text-center"
+      >
+        <div
+          class="w-14 h-14 mx-auto mb-3 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-2xl font-black"
+        >
+          !
+        </div>
+        <h3 class="text-xl font-black text-gray-900">
+          Siz hali ro'yxatdan o'tmagansiz
+        </h3>
+        <p class="text-sm text-gray-600 mt-2">
+          Bu amalni bajarish uchun avval ro'yxatdan o'ting yoki hisobingizga
+          kiring.
+        </p>
+        <div class="flex flex-col gap-3 mt-6">
+          <button
+            type="button"
+            data-open-login
+            style="font-family: inherit"
+            class="w-full text-sm font-semibold leading-none whitespace-nowrap text-white py-3.5 px-4 rounded-xl b1 cursor-pointer hover:opacity-95 transition-opacity"
+          >
+            Ro'yxatdan o'tish / Kirish
+          </button>
+          <button
+            type="button"
+            id="phGuestClose"
+            style="font-family: inherit"
+            class="w-full text-sm font-semibold leading-none whitespace-nowrap text-gray-600 bg-gray-50 hover:bg-gray-100 border border-gray-200 py-3.5 px-4 rounded-xl cursor-pointer transition-colors"
+          >
+            Keyinroq
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROFIL OYNASI -->
+    <div
+      id="phProfileModal"
+      style="display: none"
+      class="fixed inset-0 z-[10001] items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="phProfileTitle"
+    >
+      <div id="phProfileBackdrop" class="absolute inset-0 bg-gray-900/50"></div>
+      <div
+        class="relative w-full max-w-[520px] max-h-[92vh] overflow-y-auto bg-white rounded-3xl border border-emerald-200/60 shadow-2xl p-6 sm:p-8"
+      >
+        <button
+          id="phProfileClose"
+          type="button"
+          aria-label="Yopish"
+          class="absolute top-4 right-4 w-9 h-9 rounded-xl text-gray-400 hover:bg-emerald-50 hover:text-emerald-600 flex items-center justify-center cursor-pointer transition-all"
+        >
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18 17.94 6M18 18 6.06 6"
+            />
+          </svg>
+        </button>
+        <div class="text-center">
+          <span
+            class="inline-flex items-center gap-2 px-3 py-1 mb-3 text-xs font-semibold text-emerald-800 bg-emerald-100/80 rounded-full border border-emerald-200"
+            >Shaxsiy kabinet</span
+          >
+          <h2
+            id="phProfileTitle"
+            class="text-2xl font-black text-gray-900 tracking-tight"
+          >
+            Mening <span class="gradient-text">profilim</span>
+          </h2>
+          <span
+            data-avatar
+            class="ph-avatar w-24 h-24 text-4xl ring-4 ring-emerald-500/30 mx-auto mt-4"
+            aria-hidden="true"
+          ></span>
+          <p
+            id="phViewName"
+            class="text-lg font-bold text-gray-900 mt-3 break-words"
+          ></p>
+          <p data-user-email class="text-sm text-gray-500 break-all"></p>
+          <div class="flex flex-wrap items-center justify-center gap-2 mt-4">
+            <button
+              id="phPhotoBtn"
+              type="button"
+              class="px-4 py-2 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg cursor-pointer transition-colors"
+            >
+              Rasm yuklash
+            </button>
+            <button
+              id="phPhotoRemove"
+              type="button"
+              style="display: none"
+              class="px-4 py-2 text-xs font-bold text-gray-600 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg cursor-pointer transition-colors"
+            >
+              Rasmni o'chirish
+            </button>
+            <input
+              id="phPhotoInput"
+              type="file"
+              accept="image/*"
+              style="display: none"
+            />
+          </div>
+          <p class="text-[11px] text-gray-500 mt-2">
+            Rasm qo'ymasangiz, email'ning bosh harfi ko'rsatiladi.
+          </p>
+        </div>
+        <dl
+          class="grid grid-cols-2 gap-3 text-xs mt-5 border-t border-gray-200 pt-4"
+        >
+          <div>
+            <dt class="font-semibold text-gray-500 uppercase">
+              Ro'yxatdan o'tgan
+            </dt>
+            <dd id="phCreated" class="font-medium text-gray-900 mt-0.5"></dd>
+          </div>
+          <div>
+            <dt class="font-semibold text-gray-500 uppercase">Oxirgi kirish</dt>
+            <dd id="phLoginAt" class="font-medium text-gray-900 mt-0.5"></dd>
+          </div>
+        </dl>
+        <form id="phProfileForm" class="space-y-4 mt-5" novalidate>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label
+                for="phFirst"
+                class="block text-xs font-medium text-gray-700 mb-1"
+                >Ism</label
+              >
+              <input
+                id="phFirst"
+                type="text"
+                maxlength="40"
+                autocomplete="given-name"
+                placeholder="Ismingiz"
+                class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+              />
+            </div>
+            <div>
+              <label
+                for="phLast"
+                class="block text-xs font-medium text-gray-700 mb-1"
+                >Familya</label
+              >
+              <input
+                id="phLast"
+                type="text"
+                maxlength="40"
+                autocomplete="family-name"
+                placeholder="Familyangiz"
+                class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+              />
+            </div>
+          </div>
+          <div>
+            <label
+              for="phProfEmail"
+              class="block text-xs font-medium text-gray-700 mb-1"
+              >Email</label
+            >
+            <div class="flex items-center gap-2">
+              <input
+                id="phProfEmail"
+                type="email"
+                inputmode="email"
+                autocomplete="email"
+                readonly
+                class="min-w-0 flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+              />
+              <button
+                id="phEmailBtn"
+                type="button"
+                class="shrink-0 px-3 py-2 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg cursor-pointer transition-colors"
+              >
+                O'zgartirish
+              </button>
+              <button
+                id="phEmailCancel"
+                type="button"
+                style="display: none"
+                class="shrink-0 px-3 py-2 text-xs font-bold text-gray-600 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg cursor-pointer transition-colors"
+              >
+                Bekor
+              </button>
+            </div>
+            <p
+              id="phEmailErr"
+              style="display: none"
+              class="text-xs font-semibold text-red-600 mt-1.5"
+              role="alert"
+            ></p>
+          </div>
+          <div>
+            <label
+              for="phPhone"
+              class="block text-xs font-medium text-gray-700 mb-1"
+              >Telefon raqami</label
+            >
+            <input
+              id="phPhone"
+              type="tel"
+              maxlength="24"
+              autocomplete="tel"
+              placeholder="+998 (90) 000-00-00"
+              class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+            />
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label
+                for="phAbout"
+                class="block text-xs font-medium text-gray-700"
+                >O'zim haqimda</label
+              >
+              <span id="phAboutCount" class="text-[11px] text-gray-500"
+                >0/300</span
+              >
+            </div>
+            <textarea
+              id="phAbout"
+              rows="4"
+              maxlength="300"
+              placeholder="O'zingiz, kasbingiz yoki biznesingiz haqida qisqacha yozing..."
+              class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors resize-none"
+            ></textarea>
+          </div>
+          <p
+            id="phSaved"
+            style="display: none"
+            class="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2"
+            role="status"
+          ></p>
+          <p
+            id="phSaveErr"
+            style="display: none"
+            class="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2"
+            role="alert"
+          ></p>
+          <div class="flex flex-col sm:flex-row gap-3 pt-1">
+            <button
+              type="submit"
+              class="flex-1 font-bold text-[13px] text-white py-2.5 rounded-[10px] b1 hover:opacity-95 transition-opacity cursor-pointer"
+            >
+              Saqlash
+            </button>
+            <button
+              type="button"
+              data-logout
+              class="flex-1 font-bold text-[13px] text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 py-2.5 rounded-[10px] transition-colors cursor-pointer"
+            >
+              Chiqish
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- LOGIN / PROFIL SKRIPTI (saytdagi bilan bir xil) -->
+    <script>
+      (function () {
+        var root = document.documentElement;
+        function $(id) {
+          return document.getElementById(id);
+        }
+        var gateForm = $("phLoginForm"),
+          emailEl = $("phEmail"),
+          codeEl = $("phCode"),
+          errEl = $("phError"),
+          hintEl = $("phHint"),
+          toggleBtn = $("phToggleCode");
+        var guestModal = $("phGuestModal");
+        var modal = $("phProfileModal"),
+          firstEl = $("phFirst"),
+          lastEl = $("phLast"),
+          emailInput = $("phProfEmail"),
+          emailBtn = $("phEmailBtn"),
+          emailCancel = $("phEmailCancel"),
+          emailErr = $("phEmailErr"),
+          phoneEl = $("phPhone"),
+          aboutEl = $("phAbout"),
+          aboutCount = $("phAboutCount"),
+          photoInput = $("phPhotoInput"),
+          photoBtn = $("phPhotoBtn"),
+          photoRemove = $("phPhotoRemove"),
+          savedEl = $("phSaved"),
+          saveErrEl = $("phSaveErr");
+        var editingEmail = false;
+        function fmtDate(t) {
+          if (!t) return "-";
+          return new Date(t).toLocaleString("uz-UZ", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+        }
+        function show(el, text) {
+          if (text !== undefined) el.textContent = text;
+          el.style.display = "block";
+        }
+        function hide(el) {
+          el.style.display = "none";
+        }
+        function renderAvatars() {
+          var u = PHAuth.user(),
+            p = PHAuth.profile();
+          document.querySelectorAll("[data-avatar]").forEach(function (el) {
+            el.textContent = "";
+            if (!u || !p) return;
+            if (p.photo) {
+              el.style.background = "transparent";
+              var img = document.createElement("img");
+              img.src = p.photo;
+              img.alt = "";
+              el.appendChild(img);
+            } else {
+              el.style.background = p.color;
+              el.textContent = u.email.charAt(0).toUpperCase();
+            }
+          });
+        }
+        function fillUser() {
+          var u = PHAuth.user();
+          document.querySelectorAll("[data-user-email]").forEach(function (el) {
+            el.textContent = u ? u.email : "";
+          });
+          renderAvatars();
+        }
+        function showGuest() {
+          guestModal.style.display = "flex";
+        }
+        function hideGuest() {
+          guestModal.style.display = "none";
+        }
+        function updateHint() {
+          hintEl.style.display = PHAuth.hasAccount(emailEl.value)
+            ? "block"
+            : "none";
+        }
+        function closeDrawer() {
+          try {
+            var btn = document.querySelector(
+                '[data-drawer-hide="drawer-navigation"]',
+              ),
+              drawer = $("drawer-navigation");
+            if (
+              btn &&
+              drawer &&
+              !drawer.classList.contains("-translate-x-full")
+            )
+              btn.click();
+          } catch (e) {}
+        }
+        function openLogin() {
+          hideGuest();
+          closeDrawer();
+          codeEl.value = "";
+          codeEl.type = "password";
+          toggleBtn.textContent = "Ko'rsat";
+          emailEl.value = PHAuth.lastEmail();
+          hide(errEl);
+          updateHint();
+          root.classList.add("ph-locked");
+          setTimeout(function () {
+            (emailEl.value ? codeEl : emailEl).focus();
+          }, 0);
+        }
+        function closeLogin() {
+          root.classList.remove("ph-locked");
+        }
+        function unlock() {
+          root.classList.remove("ph-locked");
+          root.classList.remove("ph-guest");
+          hideGuest();
+          fillUser();
+          window.dispatchEvent(new Event("ph-auth"));
+          setTimeout(function () {
+            window.dispatchEvent(new Event("resize"));
+          }, 60);
+        }
+        function lock() {
+          closeDrawer();
+          closeProfile();
+          hideGuest();
+          root.classList.remove("ph-locked");
+          root.classList.add("ph-guest");
+          window.dispatchEvent(new Event("ph-auth"));
+          window.scrollTo(0, 0);
+        }
+        emailEl.value = PHAuth.lastEmail();
+        updateHint();
+        emailEl.addEventListener("input", function () {
+          hide(errEl);
+          updateHint();
+        });
+        codeEl.addEventListener("input", function () {
+          hide(errEl);
+        });
+        toggleBtn.addEventListener("click", function () {
+          var visible = codeEl.type === "password";
+          codeEl.type = visible ? "text" : "password";
+          toggleBtn.textContent = visible ? "Yashir" : "Ko'rsat";
+        });
+        gateForm.addEventListener("submit", function (e) {
+          e.preventDefault();
+          var res = PHAuth.login(emailEl.value, codeEl.value);
+          if (!res.ok) {
+            show(errEl, res.error);
+            (res.error.indexOf("Kod") === 0 ? codeEl : emailEl).focus();
+            return;
+          }
+          codeEl.value = "";
+          unlock();
+        });
+        $("phGateClose").addEventListener("click", closeLogin);
+        $("phGuestClose").addEventListener("click", hideGuest);
+        $("phGuestBackdrop").addEventListener("click", hideGuest);
+
+        var ALLOW =
+          "#authGate, #phGuestModal, [data-open-login], [data-drawer-show], [data-drawer-hide], summary";
+        var CLICKABLE =
+          'a, button, input, textarea, select, label, [role="button"]';
+        document.addEventListener(
+          "click",
+          function (e) {
+            var t = e.target;
+            if (!t || !t.closest) return;
+            if (t.closest("[data-open-login]")) {
+              e.preventDefault();
+              openLogin();
+              return;
+            }
+            if (PHAuth.isLoggedIn() || t.closest(ALLOW)) return;
+            if (t.closest(CLICKABLE)) {
+              e.preventDefault();
+              e.stopPropagation();
+              showGuest();
+            }
+          },
+          true,
+        );
+        document.addEventListener(
+          "focusin",
+          function (e) {
+            var t = e.target;
+            if (PHAuth.isLoggedIn() || !t || !t.closest || t.closest(ALLOW))
+              return;
+            if (t.matches("input, textarea, select")) {
+              t.blur();
+              showGuest();
+            }
+          },
+          true,
+        );
+        document.addEventListener("click", function (e) {
+          var t = e.target;
+          if (!t || !t.closest) return;
+          if (t.closest("[data-logout]")) {
+            PHAuth.logout();
+            lock();
+            return;
+          }
+          var a = t.closest('a[href$="profil.html"]');
+          if (a && PHAuth.isLoggedIn()) {
+            e.preventDefault();
+            openProfile();
+          }
+        });
+        window.addEventListener("storage", function (e) {
+          if (e.key !== "ph_user") return;
+          if (PHAuth.isLoggedIn()) unlock();
+          else lock();
+        });
+
+        function clearMessages() {
+          hide(savedEl);
+          hide(saveErrEl);
+        }
+        function saved(text) {
+          hide(saveErrEl);
+          show(savedEl, text);
+        }
+        function failed(text) {
+          hide(savedEl);
+          show(saveErrEl, text);
+        }
+        function setEmailMode(edit) {
+          editingEmail = edit;
+          emailInput.readOnly = !edit;
+          emailBtn.textContent = edit ? "Tasdiqlash" : "O'zgartirish";
+          emailCancel.style.display = edit ? "inline-block" : "none";
+          if (!edit) {
+            var u = PHAuth.user();
+            emailInput.value = u ? u.email : "";
+            hide(emailErr);
+          }
+        }
+        function updateAboutCount() {
+          aboutCount.textContent = aboutEl.value.length + "/300";
+        }
+        function renderProfile() {
+          var user = PHAuth.user(),
+            p = PHAuth.profile();
+          if (!user || !p) return;
+          $("phViewName").textContent = PHAuth.displayName(p);
+          $("phCreated").textContent = fmtDate(p.createdAt);
+          $("phLoginAt").textContent = fmtDate(user.loginAt);
+          firstEl.value = p.firstName;
+          lastEl.value = p.lastName;
+          phoneEl.value = p.phone;
+          aboutEl.value = p.about;
+          photoRemove.style.display = p.photo ? "inline-block" : "none";
+          updateAboutCount();
+          setEmailMode(false);
+          clearMessages();
+          fillUser();
+        }
+        function openProfile() {
+          if (!PHAuth.isLoggedIn()) return;
+          renderProfile();
+          modal.style.display = "flex";
+          document.body.style.overflow = "hidden";
+          setTimeout(function () {
+            firstEl.focus();
+          }, 0);
+        }
+        function closeProfile() {
+          modal.style.display = "none";
+          document.body.style.overflow = "";
+          editingEmail = false;
+        }
+        $("phProfileClose").addEventListener("click", closeProfile);
+        $("phProfileBackdrop").addEventListener("click", closeProfile);
+        document.addEventListener("keydown", function (e) {
+          if (e.key !== "Escape") return;
+          if (guestModal.style.display === "flex") return hideGuest();
+          if (root.classList.contains("ph-locked")) return closeLogin();
+          if (modal.style.display !== "flex") return;
+          if (editingEmail) setEmailMode(false);
+          else closeProfile();
+        });
+
+        function processImage(file) {
+          return new Promise(function (resolve, reject) {
+            if (!file || !/^image\//.test(file.type))
+              return reject(new Error("Faqat rasm faylini tanlang."));
+            if (file.size > 8 * 1024 * 1024)
+              return reject(new Error("Rasm hajmi 8 MB dan oshmasligi kerak."));
+            var reader = new FileReader();
+            reader.onerror = function () {
+              reject(new Error("Rasmni o'qib bo'lmadi."));
+            };
+            reader.onload = function () {
+              var img = new Image();
+              img.onerror = function () {
+                reject(new Error("Bu rasm formati qo'llab-quvvatlanmaydi."));
+              };
+              img.onload = function () {
+                var size = 256,
+                  canvas = document.createElement("canvas");
+                canvas.width = size;
+                canvas.height = size;
+                var c2d = canvas.getContext("2d"),
+                  s = Math.min(img.width, img.height);
+                c2d.fillStyle = "#ffffff";
+                c2d.fillRect(0, 0, size, size);
+                c2d.drawImage(
+                  img,
+                  (img.width - s) / 2,
+                  (img.height - s) / 2,
+                  s,
+                  s,
+                  0,
+                  0,
+                  size,
+                  size,
+                );
+                resolve(canvas.toDataURL("image/jpeg", 0.85));
+              };
+              img.src = reader.result;
+            };
+            reader.readAsDataURL(file);
+          });
+        }
+        photoBtn.addEventListener("click", function () {
+          photoInput.click();
+        });
+        photoInput.addEventListener("change", function () {
+          var file = photoInput.files && photoInput.files[0];
+          photoInput.value = "";
+          if (!file) return;
+          processImage(file)
+            .then(function (url) {
+              if (!PHAuth.saveProfile({ photo: url }))
+                return failed(
+                  "Rasmni saqlab bo'lmadi. Brauzer xotirasi to'lgan bo'lishi mumkin.",
+                );
+              photoRemove.style.display = "inline-block";
+              renderAvatars();
+              saved("Rasm yangilandi.");
+            })
+            .catch(function (err) {
+              failed(err.message);
+            });
+        });
+        photoRemove.addEventListener("click", function () {
+          if (PHAuth.saveProfile({ photo: "" })) {
+            photoRemove.style.display = "none";
+            renderAvatars();
+            saved("Rasm o'chirildi. Email'ning bosh harfi ko'rsatiladi.");
+          }
+        });
+        function confirmEmail() {
+          var res = PHAuth.changeEmail(emailInput.value);
+          if (!res.ok) {
+            show(emailErr, res.error);
+            emailInput.focus();
+            return;
+          }
+          setEmailMode(false);
+          fillUser();
+          saved("Email o'zgartirildi.");
+          window.dispatchEvent(new Event("ph-auth"));
+        }
+        emailBtn.addEventListener("click", function () {
+          if (!editingEmail) {
+            clearMessages();
+            setEmailMode(true);
+            emailInput.focus();
+            emailInput.select();
+          } else confirmEmail();
+        });
+        emailCancel.addEventListener("click", function () {
+          setEmailMode(false);
+        });
+        emailInput.addEventListener("keydown", function (e) {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            if (editingEmail) confirmEmail();
+          }
+        });
+        emailInput.addEventListener("input", function () {
+          hide(emailErr);
+        });
+        phoneEl.addEventListener("input", function () {
+          phoneEl.value = phoneEl.value.replace(/[^\d+()\-\s]/g, "");
+          clearMessages();
+        });
+        [firstEl, lastEl].forEach(function (el) {
+          el.addEventListener("input", clearMessages);
+        });
+        aboutEl.addEventListener("input", function () {
+          updateAboutCount();
+          clearMessages();
+        });
+        $("phProfileForm").addEventListener("submit", function (e) {
+          e.preventDefault();
+          var ok = PHAuth.saveProfile({
+            firstName: firstEl.value.trim(),
+            lastName: lastEl.value.trim(),
+            phone: phoneEl.value.trim(),
+            about: aboutEl.value.trim(),
+          });
+          if (!ok) return failed("Saqlab bo'lmadi. Qayta urinib ko'ring.");
+          $("phViewName").textContent = PHAuth.displayName(PHAuth.profile());
+          saved("Ma'lumotlar saqlandi.");
+          window.dispatchEvent(new Event("ph-auth"));
+        });
+        if (PHAuth.isLoggedIn()) fillUser();
+      })();
+    </script>
+
+    <!-- TO'LOVLAR MANTIQI -->
+    <script>
+      (function () {
+        "use strict";
+        var DAY = 864e5,
+          BONUS = 1000000,
+          MAXC = 10,
+          MAXTOP = 5e7,
+          BIG = 5e6,
+          PFX = "ph_pay5:";
+        var $ = function (id) {
+          return document.getElementById(id);
+        };
+        var fmt = function (n) {
+          return (
+            Math.round(n)
+              .toLocaleString("ru-RU")
+              .replace(/\u00a0/g, " ") + " so'm"
+          );
+        };
+        var two = function (n) {
+          return (n < 10 ? "0" : "") + n;
+        };
+        var svg = function (d, c) {
+          return (
+            '<svg class="' +
+            (c || "w-6 h-6") +
+            '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+            d +
+            "</svg>"
+          );
+        };
+        var IC = {
+          gas: '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.3 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
+          svet: '<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>',
+          suv: '<path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/>',
+          axlat:
+            '<path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M10 11v6M14 11v6"/>',
+          net: '<path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/>',
+          mob: '<rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/>',
+          dom: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/>',
+          mulk: '<path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/><path d="m9 12 2 2 4-4"/>',
+          check:
+            '<path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
+          card: '<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>',
+          ok: '<path d="M20 6 9 17l-5-5"/>',
+          clock: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+          alert: '<path d="M12 3 2 21h20zM12 10v5M12 18h.01"/>',
+          doc: '<path d="M6 2h9l5 5v15H6zM14 2v6h6M9 13h8M9 17h8"/>',
+          repeat:
+            '<path d="M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3"/>',
+          gift: '<path d="M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 1 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>',
+        };
+        // m = to'lov davri (oy), seed = birinchi ochilganda muddatgacha qolgan vaqt (ms)
+        var SVC = [
+          {
+            id: "gas",
+            g: 1,
+            n: "Gaz (Tabiiy gaz)",
+            s: "Gaz",
+            acc: "GZ-4820-1736",
+            amt: 86400,
+            m: 3,
+            seed: 25e3,
+            col: "bg-orange-50 text-orange-600",
+          },
+          {
+            id: "svet",
+            g: 1,
+            n: "Svet (Elektr energiyasi)",
+            s: "Svet",
+            acc: "EL-2093-5518",
+            amt: 143250,
+            m: 3,
+            seed: -DAY,
+            col: "bg-amber-50 text-amber-600",
+          },
+          {
+            id: "suv",
+            g: 1,
+            n: "Suv (Ichimlik suvi)",
+            s: "Suv",
+            acc: "SV-7716-0342",
+            amt: 38900,
+            m: 3,
+            seed: 5 * DAY,
+            col: "bg-sky-50 text-sky-600",
+          },
+          {
+            id: "axlat",
+            g: 1,
+            n: "Axlat (Maishiy chiqindi)",
+            s: "Axlat",
+            acc: "AX-3305-8821",
+            amt: 21000,
+            m: 3,
+            seed: 12 * DAY,
+            col: "bg-green-50 text-green-600",
+          },
+          {
+            id: "net",
+            g: 2,
+            n: "Internet va Wi-Fi",
+            s: "Internet",
+            acc: "IN-9140-2267",
+            amt: 99000,
+            m: 1,
+            seed: 3 * DAY,
+            col: "bg-violet-50 text-violet-600",
+          },
+          {
+            id: "mob",
+            g: 2,
+            n: "Mobil aloqa",
+            s: "Mobil aloqa",
+            acc: "MB-5521-0087",
+            amt: 60000,
+            m: 1,
+            seed: 8 * DAY,
+            col: "bg-pink-50 text-pink-600",
+          },
+          {
+            id: "dom",
+            g: 2,
+            n: "Domofon",
+            s: "Domofon",
+            acc: "DM-1187-6630",
+            amt: 15000,
+            m: 1,
+            seed: 15 * DAY,
+            col: "bg-teal-50 text-teal-600",
+          },
+          {
+            id: "mulk",
+            g: 2,
+            n: "Xususiy mulk (OSGO/ShIR)",
+            s: "OSGO/ShIR",
+            acc: "SH-6058-4419",
+            amt: 250000,
+            m: 3,
+            seed: 20 * DAY,
+            col: "bg-rose-50 text-rose-600",
+          },
+        ];
+        var GUIDE = [
+          [
+            "Karta biriktiring",
+            "Uzcard, Humo yoki Visa kartangizni qo'shing va asosiy kartani tanlang.",
+            IC.card,
+          ],
+          [
+            "Hisobni to'ldiring",
+            "Kerakli summani kiriting. Balans darhol yangilanadi.",
+            IC.doc,
+          ],
+          [
+            "To'lash tugmasini bosing",
+            "Xizmat kartochkasidagi tugma bosilgach, to'lov tanlangan kartadan bajariladi.",
+            IC.check,
+          ],
+          [
+            "Keyingi limitni kuzating",
+            "To'landi belgisi chiqadi, keyingi to'lov muddati sanab turiladi.",
+            IC.clock,
+          ],
+        ];
+        var GR = [
+          "linear-gradient(135deg,#1e3a8a,#6366f1 60%,#2dd4bf)",
+          "linear-gradient(135deg,#7c3aed,#ec4899)",
+          "linear-gradient(135deg,#f97316,#ef4444)",
+          "linear-gradient(135deg,#0ea5e9,#22d3ee)",
+          "linear-gradient(135deg,#16a34a,#84cc16)",
+          "linear-gradient(135deg,#0f172a,#475569)",
+          "linear-gradient(135deg,#db2777,#f59e0b)",
+          "linear-gradient(135deg,#065f46,#10b981)",
+          "linear-gradient(135deg,#be123c,#fb7185)",
+          "linear-gradient(135deg,#4338ca,#a855f7)",
+        ];
+        var S,
+          cur,
+          tm,
+          newBonus = false,
+          lastDebt = -1;
+        var svcOf = function (id) {
+          return SVC.filter(function (s) {
+            return s.id === id;
+          })[0];
+        };
+        var fnum = function (n) {
+          return String(n || "")
+            .replace(/(.{4})/g, "$1 ")
+            .trim();
+        };
+        var addMonths = function (ts, n) {
+          var d = new Date(ts);
+          d.setMonth(d.getMonth() + n);
+          return d.getTime();
+        };
+        var isPaid = function (st) {
+          return !!st.paid && Date.now() < st.due;
+        };
+        function key() {
+          var u = window.PHAuth && PHAuth.user();
+          return PFX + ((u && u.email) || "mehmon");
+        }
+        function seed() {
+          var n = Date.now(),
+            s = {
+              bal: 0,
+              bonus: false,
+              cards: [],
+              sel: "",
+              auto: { on: false, day: 5, card: "" },
+              svc: {},
+              hist: [],
+            };
+          SVC.forEach(function (v) {
+            s.svc[v.id] = { paid: false, due: n + v.seed };
+          });
+          return s;
+        }
+        function save() {
+          try {
+            localStorage.setItem(cur, JSON.stringify(S));
+          } catch (e) {}
+        }
+        function load() {
+          cur = key();
+          S = null;
+          newBonus = false;
+          try {
+            S = JSON.parse(localStorage.getItem(cur));
+          } catch (e) {}
+          var u = window.PHAuth && PHAuth.user();
+          if (!S && u) {
+            // email o'zgartirilgan bo'lsa, eski hisob ma'lumotlari ko'chiriladi (bonus qayta berilmaydi)
+            try {
+              var prev = localStorage.getItem("ph_pay_last"),
+                profs = JSON.parse(localStorage.getItem("ph_profiles")) || {};
+              if (prev && prev !== u.email && !profs[prev]) {
+                var old = localStorage.getItem(PFX + prev);
+                if (old) {
+                  S = JSON.parse(old);
+                  localStorage.removeItem(PFX + prev);
+                }
+              }
+            } catch (e) {}
+          }
+          if (u) {
+            try {
+              localStorage.setItem("ph_pay_last", u.email);
+            } catch (e) {}
+          }
+          if (!S || typeof S !== "object" || !S.svc || !Array.isArray(S.cards))
+            S = seed();
+          S.bal = +S.bal || 0;
+          S.auto = S.auto || {};
+          if (S.auto.day === undefined) S.auto.day = 5;
+          S.auto.on = !!S.auto.on;
+          S.auto.card = S.auto.card || "";
+          if (!Array.isArray(S.hist)) S.hist = [];
+          SVC.forEach(function (v) {
+            if (!S.svc[v.id])
+              S.svc[v.id] = { paid: false, due: Date.now() + v.seed };
+          });
+          var used = S.cards.map(function (c) {
+            return c.g;
+          });
+          S.cards.forEach(function (c, i) {
+            if (!c.id) c.id = "c" + Date.now().toString(36) + i;
+            if (!c.last4 && c.num) c.last4 = String(c.num).slice(-4);
+            if (c.g === undefined) {
+              var gi = 0;
+              while (gi < GR.length && used.indexOf(gi) > -1) gi++;
+              c.g = gi % GR.length;
+              used.push(c.g);
+            }
+          });
+          if (
+            S.cards.length &&
+            !S.cards.some(function (c) {
+              return c.main;
+            })
+          )
+            S.cards[0].main = true;
+          S.cards.forEach(function (c) {
+            c.bal = +c.bal || 0;
+          });
+          if (S.cards.length && S.bal > 0) {
+            main().bal += S.bal;
+            S.bal = 0;
+          }
+          if (u && !S.bonus) {
+            S.bonus = true;
+            newBonus = true;
+            var mc0 = main();
+            if (mc0) mc0.bal += BONUS;
+            else S.bal += BONUS;
+            S.hist.unshift({
+              svc: "",
+              amt: BONUS,
+              ts: Date.now(),
+              type: "bonus",
+              status: "ok",
+              card: "",
+            });
+          }
+          save();
+        }
+        function main() {
+          return (
+            S.cards.filter(function (c) {
+              return c.main;
+            })[0] ||
+            S.cards[0] ||
+            null
+          );
+        }
+        function total() {
+          return S.cards.reduce(function (a, c) {
+            return a + (c.bal || 0);
+          }, S.bal);
+        }
+        function selCard() {
+          return (
+            S.cards.filter(function (c) {
+              return c.id === S.sel;
+            })[0] || main()
+          );
+        }
+        function left(ms) {
+          var s = Math.max(0, Math.floor(ms / 1000)),
+            d = Math.floor(s / 86400);
+          return (
+            (d ? d + " kun " : "") +
+            two(Math.floor((s % 86400) / 3600)) +
+            ":" +
+            two(Math.floor((s % 3600) / 60)) +
+            ":" +
+            two(s % 60)
+          );
+        }
+        function fdate(ts) {
+          return new Date(ts).toLocaleString("uz-UZ", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+        }
+        function toast(t) {
+          var e = $("toast");
+          e.textContent = t;
+          e.className =
+            "fixed bottom-5 left-1/2 -translate-x-1/2 z-[9500] max-w-[92vw] px-5 py-3 text-sm font-semibold text-white bg-gray-900 rounded-xl shadow-xl";
+          clearTimeout(tm);
+          tm = setTimeout(function () {
+            e.className = "hidden";
+          }, 3500);
+        }
+        function showBonus() {
+          if (!newBonus) return;
+          newBonus = false;
+          var n = $("bonusNote");
+          n.style.display = "flex";
+          setTimeout(function () {
+            n.style.display = "none";
+          }, 9000);
+        }
+        $("bonusX").addEventListener("click", function () {
+          $("bonusNote").style.display = "none";
+        });
+
+        function cardHtml(v) {
+          return (
+            '<article id="c-' +
+            v.id +
+            '" class="card lift p-5 svc">' +
+            '<p id="w-' +
+            v.id +
+            '" class="hidden"></p>' +
+            '<div class="flex items-center gap-3" style="min-height:3.25rem"><span class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ' +
+            v.col +
+            '">' +
+            svg(IC[v.id]) +
+            "</span>" +
+            '<div class="min-w-0"><h3 class="font-extrabold leading-tight text-sm">' +
+            v.n +
+            '</h3><p class="text-xs text-gray-500">Hisob: <b>' +
+            v.acc +
+            "</b></p></div></div>" +
+            '<div class="grid grid-cols-2 gap-3"><div class="min-w-0"><p class="text-xs text-gray-500">Joriy qarz</p><p id="d-' +
+            v.id +
+            '" class="font-black whitespace-nowrap" style="font-size:15px"></p></div>' +
+            '<div class="min-w-0"><p class="text-xs text-gray-500">To\'lov summasi</p><p class="font-black whitespace-nowrap" style="font-size:15px">' +
+            fmt(v.amt) +
+            "</p></div></div>" +
+            '<p id="i-' +
+            v.id +
+            '" class="text-xs text-gray-600" style="min-height:2.4em"></p>' +
+            '<button type="button" id="b-' +
+            v.id +
+            '" data-pay="' +
+            v.id +
+            '" class="pay"></button></article>'
+          );
+        }
+        function opts(selId) {
+          return (
+            S.cards
+              .map(function (c) {
+                return (
+                  '<option value="' +
+                  c.id +
+                  '"' +
+                  (c.id === selId ? " selected" : "") +
+                  ">" +
+                  c.brand +
+                  " •••• " +
+                  c.last4 +
+                  " · " +
+                  fmt(c.bal) +
+                  (c.main ? " (asosiy)" : "") +
+                  "</option>"
+                );
+              })
+              .join("") || '<option value="">Karta yo\'q</option>'
+          );
+        }
+        function renderSelects() {
+          var sc = selCard(),
+            ac =
+              S.cards.filter(function (c) {
+                return c.id === S.auto.card;
+              })[0] || sc,
+            m = main();
+          $("payCard").innerHTML = opts(sc && sc.id);
+          $("tCard").innerHTML = opts(m && m.id);
+          $("apCard").innerHTML = opts(ac && ac.id);
+        }
+        function vcard(c) {
+          return (
+            '<div class="pwrap"><div class="pcard" style="background:' +
+            GR[c.g % GR.length] +
+            '">' +
+            '<div class="flex justify-between items-center gap-2"><span class="font-extrabold" style="font-size:13px">' +
+            c.brand +
+            "</span>" +
+            (c.main
+              ? '<span class="font-extrabold rounded-full px-2.5 py-0.5" style="font-size:11px;background:rgba(255,255,255,.25)">Asosiy</span>'
+              : "") +
+            "</div>" +
+            '<div class="font-extrabold whitespace-nowrap" style="font-size:clamp(14px,6.1cqw,21px);letter-spacing:.06em;font-variant-numeric:tabular-nums">' +
+            fnum(c.num) +
+            "</div>" +
+            '<div class="font-bold" style="font-size:12px">Balans: ' +
+            fmt(c.bal) +
+            "</div>" +
+            '<div class="flex justify-between gap-2 opacity-90" style="font-size:11px"><span class="truncate uppercase">' +
+            (c.name || "") +
+            '</span><span class="shrink-0">' +
+            c.exp +
+            "</span></div>" +
+            '<div class="flex gap-2">' +
+            (c.main
+              ? ""
+              : '<button type="button" class="pbtn" data-main="' +
+                c.id +
+                '">Asosiy qilish</button>') +
+            '<button type="button" class="pbtn" data-del="' +
+            c.id +
+            "\">O'chirish</button></div></div></div>"
+          );
+        }
+        function renderCards() {
+          $("cardChips").innerHTML = S.cards.length
+            ? S.cards.map(vcard).join("")
+            : '<div class="pwrap"><div class="pcard" style="background:' +
+              GR[0] +
+              '"><span class="font-extrabold" style="font-size:13px">Karta qo\'shilmagan</span><span class="font-extrabold" style="font-size:clamp(14px,6.1cqw,21px);letter-spacing:.06em">•••• •••• •••• ••••</span><span style="font-size:11px" class="opacity-90">"Karta qo\'shish" tugmasi orqali karta biriktiring</span></div></div>';
+          $("cmList").innerHTML = S.cards.length
+            ? S.cards
+                .map(function (c) {
+                  return (
+                    '<div class="flex items-center justify-between gap-2 p-3 border border-gray-200 rounded-xl"><div class="flex items-center gap-3 min-w-0"><span class="w-9 h-6 rounded-md shrink-0" style="background:' +
+                    GR[c.g % GR.length] +
+                    '"></span><div class="text-sm min-w-0"><b class="block truncate">' +
+                    c.brand +
+                    " " +
+                    fnum(c.num) +
+                    '</b><span class="text-xs text-gray-500">' +
+                    (c.name ? c.name + " · " : "") +
+                    c.exp +
+                    " · " +
+                    fmt(c.bal) +
+                    (c.main ? " · asosiy" : "") +
+                    '</span></div></div><div class="flex gap-2 shrink-0">' +
+                    (c.main
+                      ? ""
+                      : '<button type="button" data-main="' +
+                        c.id +
+                        '" class="text-xs font-bold text-emerald-700 hover:underline cursor-pointer">Asosiy qilish</button>') +
+                    '<button type="button" data-del="' +
+                    c.id +
+                    '" class="text-xs font-bold text-red-600 hover:underline cursor-pointer">O\'chirish</button></div></div>'
+                  );
+                })
+                .join("")
+            : '<p class="text-xs text-gray-500">Hali karta biriktirilmagan.</p>';
+          renderSelects();
+        }
+        function build() {
+          $("coreGrid").innerHTML = SVC.filter(function (v) {
+            return v.g === 1;
+          })
+            .map(cardHtml)
+            .join("");
+          $("extraGrid").innerHTML = SVC.filter(function (v) {
+            return v.g === 2;
+          })
+            .map(cardHtml)
+            .join("");
+          $("guide").innerHTML = GUIDE.map(function (g, i) {
+            return (
+              '<li class="card p-5 text-center"><span class="w-14 h-14 mx-auto rounded-2xl b1 text-white flex items-center justify-center">' +
+              svg(g[2], "w-7 h-7") +
+              '</span><p class="text-xs font-black text-emerald-700 mt-3">' +
+              (i + 1) +
+              '-qadam</p><h3 class="font-extrabold mt-1">' +
+              g[0] +
+              '</h3><p class="text-sm text-gray-600 mt-1">' +
+              g[1] +
+              "</p></li>"
+            );
+          }).join("");
+          $("fSvc").innerHTML =
+            '<option value="">Barcha xizmatlar</option><option value="top">Hisob to\'ldirish va bonus</option>' +
+            SVC.map(function (v) {
+              return '<option value="' + v.id + '">' + v.s + "</option>";
+            }).join("");
+          $("apDay").innerHTML = Array.from({ length: 28 }, function (_, i) {
+            return (
+              '<option value="' + (i + 1) + '">' + (i + 1) + "-kunidan</option>"
+            );
+          }).join("");
+          $("apDay").value = S.auto.day;
+          $("apOn").checked = S.auto.on;
+          apLbl();
+          renderCards();
+          lastDebt = -1;
+          stats();
+          hist();
+          SVC.forEach(card);
+        }
+        function card(v) {
+          var st = S.svc[v.id],
+            now = Date.now(),
+            rem = st.due - now;
+          var b = $("b-" + v.id),
+            w = $("w-" + v.id),
+            d = $("d-" + v.id),
+            i = $("i-" + v.id),
+            c = $("c-" + v.id);
+          if (!b) return;
+          var base = "pay w-full py-2.5 rounded-xl text-sm font-bold ",
+            cc = "card lift p-5 svc ";
+          if (isPaid(st)) {
+            b.disabled = true;
+            b.textContent = "To'landi";
+            b.className =
+              base + "bg-emerald-100 text-emerald-700 cursor-not-allowed";
+            w.className = "hidden";
+            d.textContent = "0 so'm";
+            d.className = "font-black whitespace-nowrap text-emerald-600";
+            i.textContent =
+              "Keyingi to'lov: " +
+              (v.m === 3 ? "3" : "1") +
+              " oydan keyin (" +
+              left(rem) +
+              " qoldi)";
+            c.className = cc;
+          } else if (rem <= 0) {
+            b.disabled = false;
+            b.textContent = "To'lash";
+            b.className =
+              base + "bg-red-600 hover:bg-red-700 text-white cursor-pointer";
+            w.className =
+              "block text-xs font-bold text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2";
+            w.textContent = "To'lash vaqti yetdi!";
+            d.textContent = fmt(v.amt);
+            d.className = "font-black whitespace-nowrap text-red-600";
+            i.textContent = "Muddat o'tgan: " + left(now - st.due);
+            c.className = cc + "border-red-300!";
+          } else {
+            b.disabled = false;
+            b.textContent = "To'lash";
+            b.className =
+              base + "b1 text-white hover:opacity-95 cursor-pointer";
+            w.className = "hidden";
+            d.textContent = fmt(v.amt);
+            d.className = "font-black whitespace-nowrap text-gray-900";
+            i.textContent = "To'lov muddatiga: " + left(rem);
+            c.className = cc;
+          }
+        }
+        function debt() {
+          var n = Date.now();
+          return SVC.reduce(function (a, v) {
+            var st = S.svc[v.id];
+            return a + (!isPaid(st) && st.due <= n ? v.amt : 0);
+          }, 0);
+        }
+        function stats() {
+          var d = debt(),
+            mo = new Date();
+          mo.setDate(1);
+          mo.setHours(0, 0, 0, 0);
+          lastDebt = d;
+          var paid = S.hist
+            .filter(function (h) {
+              return (
+                (h.type === "pay" || h.type === "auto") &&
+                h.status === "ok" &&
+                h.ts >= mo.getTime()
+              );
+            })
+            .reduce(function (a, h) {
+              return a + h.amt;
+            }, 0);
+          var cd = [
+            [
+              "Shu oydagi to'lovlar",
+              fmt(paid),
+              "text-gray-900",
+              "ok",
+              "bg-emerald-50 text-emerald-600",
+            ],
+            [
+              "Qolgan qarzdorlik",
+              fmt(d),
+              d ? "text-red-600" : "text-emerald-600",
+              "alert",
+              "bg-red-50 text-red-600",
+            ],
+            [
+              "Faol shartnomalar",
+              SVC.length + " ta",
+              "text-gray-900",
+              "doc",
+              "bg-sky-50 text-sky-600",
+            ],
+            [
+              "Avto-to'lov",
+              S.auto.on ? "Yoqilgan" : "O'chiq",
+              S.auto.on ? "text-emerald-600" : "text-gray-500",
+              "repeat",
+              "bg-violet-50 text-violet-600",
+            ],
+          ];
+          $("s2").innerHTML = cd
+            .map(function (c) {
+              return (
+                '<div class="card lift p-5"><span class="w-11 h-11 rounded-xl flex items-center justify-center ' +
+                c[4] +
+                '">' +
+                svg(IC[c[3]]) +
+                '</span><p class="text-xs font-semibold text-gray-500 uppercase mt-3">' +
+                c[0] +
+                '</p><p class="text-xl sm:text-2xl font-black mt-1 ' +
+                c[2] +
+                '">' +
+                c[1] +
+                "</p></div>"
+              );
+            })
+            .join("");
+          var u = window.PHAuth && PHAuth.user(),
+            h = 7;
+          if (u)
+            for (var k = 0; k < u.email.length; k++)
+              h = (h * 31 + u.email.charCodeAt(k)) % 90000000;
+          $("hName").textContent = u
+            ? PHAuth.displayName(PHAuth.profile())
+            : "Mehmon";
+          $("hId").textContent = u ? "PH-" + (h + 10000000) : "—";
+          $("hBal").textContent = fmt(total());
+          $("hDebt").textContent = fmt(d);
+          $("hDebt").className =
+            "text-2xl font-black " + (d ? "text-red-600" : "text-emerald-600");
+          var m = selCard();
+          $("hCard").textContent = m
+            ? "To'lov kartasi: " +
+              m.brand +
+              " •••• " +
+              m.last4 +
+              " · " +
+              fmt(m.bal)
+            : "Karta hali biriktirilmagan";
+        }
+        function hist() {
+          var f = $("fSvc").value;
+          var rows = S.hist
+            .filter(function (h) {
+              return (
+                !f ||
+                (f === "top"
+                  ? h.type === "top" || h.type === "bonus"
+                  : h.svc === f)
+              );
+            })
+            .slice(0, 30);
+          $("hist").innerHTML =
+            rows
+              .map(function (h) {
+                var v = svcOf(h.svc),
+                  inc = h.type === "top" || h.type === "bonus",
+                  ic =
+                    h.type === "bonus"
+                      ? IC.gift
+                      : inc
+                        ? IC.card
+                        : v
+                          ? IC[v.id]
+                          : "";
+                var name =
+                  h.type === "bonus"
+                    ? "Xush kelibsiz bonusi"
+                    : h.type === "top"
+                      ? "Hisob to'ldirish"
+                      : v
+                        ? v.s
+                        : "Xizmat";
+                return (
+                  '<tr class="border-t border-gray-100"><td class="p-3"><span class="inline-flex items-center gap-2 font-semibold"><span class="w-8 h-8 rounded-lg flex items-center justify-center ' +
+                  (inc ? "bg-emerald-50 text-emerald-600" : v ? v.col : "") +
+                  '">' +
+                  svg(ic, "w-4 h-4") +
+                  "</span>" +
+                  name +
+                  "</span></td>" +
+                  '<td class="p-3 font-bold ' +
+                  (inc ? "text-emerald-600" : "") +
+                  '">' +
+                  (inc ? "+" : "−") +
+                  fmt(h.amt) +
+                  "</td>" +
+                  '<td class="p-3 text-gray-600 whitespace-nowrap">' +
+                  fdate(h.ts) +
+                  "</td>" +
+                  '<td class="p-3 text-gray-600 whitespace-nowrap">' +
+                  (h.type === "auto" ? "Avto · " : "") +
+                  (h.card ? "•••• " + h.card : "—") +
+                  "</td>" +
+                  '<td class="p-3"><span class="px-2 py-1 rounded-full text-xs font-bold ' +
+                  (h.status === "ok"
+                    ? "bg-emerald-100 text-emerald-700"
+                    : "bg-amber-100 text-amber-700") +
+                  '">' +
+                  (h.status === "ok" ? "Muvaffaqiyatli" : "Kutilmoqda") +
+                  "</span></td></tr>"
+                );
+              })
+              .join("") ||
+            '<tr><td colspan="5" class="p-6 text-center text-gray-500">Mos to\'lovlar topilmadi.</td></tr>';
+        }
+        function apLbl() {
+          $("apLbl").textContent = S.auto.on ? "Yoqilgan" : "O'chiq";
+        }
+
+        function pay(id, auto) {
+          var v = svcOf(id),
+            st = S.svc[id],
+            now = Date.now();
+          if (!v || isPaid(st)) return "paid";
+          var c = auto
+            ? S.cards.filter(function (x) {
+                return x.id === S.auto.card;
+              })[0] || selCard()
+            : selCard();
+          if (!c) return "nocard";
+          if (c.bal < v.amt) return "funds";
+          c.bal -= v.amt;
+          st.paid = true;
+          st.due = addMonths(now, v.m);
+          S.hist.unshift({
+            svc: id,
+            amt: v.amt,
+            ts: now,
+            type: auto ? "auto" : "pay",
+            status: "ok",
+            card: c.last4,
+          });
+          S.hist = S.hist.slice(0, 60);
+          save();
+          renderCards();
+          stats();
+          hist();
+          card(v);
+          toast(
+            v.s +
+              ": " +
+              fmt(v.amt) +
+              " to'landi" +
+              (auto ? " (avto-to'lov)" : "") +
+              ".",
+          );
+          return "ok";
+        }
+        var pendSvc = "";
+        function pmMsg(t) {
+          var m = $("pmMsg");
+          m.textContent = t;
+          m.className = t
+            ? "mt-3 text-xs font-semibold rounded-lg px-3 py-2 text-red-600 bg-red-50 border border-red-200"
+            : "hidden";
+        }
+        function openPay(id) {
+          var v = svcOf(id);
+          if (!v || isPaid(S.svc[id])) return;
+          if (!S.cards.length) {
+            toast("To'lash uchun avval karta biriktiring.");
+            openCm(0, "card");
+            return;
+          }
+          pendSvc = id;
+          $("pmTitle").textContent = v.n;
+          $("pmAmt").textContent = fmt(v.amt);
+          var sc = selCard();
+          $("pmCard").innerHTML = opts(sc && sc.id);
+          pmMsg("");
+          $("pm").style.display = "flex";
+          document.body.style.overflow = "hidden";
+        }
+        function closePm() {
+          $("pm").style.display = "none";
+          document.body.style.overflow = "";
+          pendSvc = "";
+        }
+        function onGrid(e) {
+          var b = e.target.closest("[data-pay]");
+          if (!b || b.disabled) return;
+          openPay(b.getAttribute("data-pay"));
+        }
+        $("pmGo").addEventListener("click", function () {
+          var v = svcOf(pendSvc);
+          if (!v) return closePm();
+          S.sel = $("pmCard").value;
+          save();
+          var r = pay(v.id, false);
+          if (r === "funds") {
+            var c = selCard();
+            pmMsg(
+              "Bu kartada mablag' yetarli emas: kerak " +
+                fmt(v.amt) +
+                ", kartada " +
+                fmt(c.bal) +
+                ". Boshqa karta tanlang yoki kartani to'ldiring.",
+            );
+          } else if (r === "nocard") {
+            closePm();
+            openCm(0, "card");
+          } else closePm();
+        });
+        $("pmTop").addEventListener("click", function () {
+          var v = svcOf(pendSvc),
+            id = $("pmCard").value,
+            c = S.cards.filter(function (x) {
+              return x.id === id;
+            })[0];
+          closePm();
+          openCm(v && c ? Math.max(0, v.amt - c.bal) : 0, "top", id);
+        });
+        ["pmX", "pmBack", "pmCancel"].forEach(function (i) {
+          $(i).addEventListener("click", closePm);
+        });
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape" && $("pm").style.display === "flex") closePm();
+        });
+        $("coreGrid").addEventListener("click", onGrid);
+        $("extraGrid").addEventListener("click", onGrid);
+        $("fSvc").addEventListener("change", hist);
+        $("reset").addEventListener("click", function () {
+          if (
+            window.confirm(
+              "Demo ma'lumotlari boshlang'ich holatga qaytarilsin? Kartalar va tarix o'chadi.",
+            )
+          ) {
+            var had = S.bonus;
+            S = seed();
+            S.bonus = had;
+            save();
+            build();
+          }
+        });
+        $("payCard").addEventListener("change", function () {
+          S.sel = this.value;
+          save();
+          stats();
+        });
+        $("apOn").addEventListener("change", function () {
+          S.auto.on = this.checked;
+          save();
+          apLbl();
+          stats();
+          toast(S.auto.on ? "Avto-to'lov yoqildi." : "Avto-to'lov o'chirildi.");
+          tick();
+        });
+        $("apDay").addEventListener("change", function () {
+          S.auto.day = +this.value;
+          save();
+        });
+        $("apCard").addEventListener("change", function () {
+          S.auto.card = this.value;
+          save();
+        });
+
+        function tick() {
+          if (key() !== cur) {
+            load();
+            build();
+            showBonus();
+            return;
+          }
+          var now = Date.now();
+          S.hist.forEach(function (h) {
+            if (h.status === "wait" && now >= h.done) {
+              h.status = "ok";
+              var wc = S.cards.filter(function (x) {
+                return x.id === h.cid;
+              })[0];
+              if (wc) wc.bal += h.amt;
+              else S.bal += h.amt;
+              save();
+              renderCards();
+              hist();
+              stats();
+              toast("Hisob " + fmt(h.amt) + " ga to'ldirildi.");
+            }
+          });
+          if (S.auto.on && new Date().getDate() >= S.auto.day)
+            SVC.forEach(function (v) {
+              var st = S.svc[v.id];
+              if (!isPaid(st) && now >= st.due) pay(v.id, true);
+            });
+          SVC.forEach(card);
+          $("hClock").textContent = new Date().toLocaleTimeString("uz-UZ");
+          if (debt() !== lastDebt) stats();
+        }
+
+        var cm = $("cm");
+        function msg(t, ok) {
+          var m = $("cmMsg");
+          m.textContent = t;
+          m.className = t
+            ? "mt-3 text-xs font-semibold rounded-lg px-3 py-2 " +
+              (ok
+                ? "text-emerald-700 bg-emerald-50 border border-emerald-200"
+                : "text-red-600 bg-red-50 border border-red-200")
+            : "hidden";
+        }
+        function openCm(need, target, cardId) {
+          renderSelects();
+          if (cardId) $("tCard").value = cardId;
+          $("tAmt").value = need ? String(Math.ceil(need / 1000) * 1000) : "";
+          msg("");
+          cm.style.display = "flex";
+          document.body.style.overflow = "hidden";
+          if (target)
+            setTimeout(function () {
+              $(target === "card" ? "cmAdd" : "cmTop").scrollIntoView({
+                block: "start",
+              });
+            }, 30);
+        }
+        function closeCm() {
+          cm.style.display = "none";
+          document.body.style.overflow = "";
+        }
+        document.querySelectorAll("[data-cards]").forEach(function (b) {
+          b.addEventListener("click", function () {
+            openCm(0);
+          });
+        });
+        document.querySelectorAll("[data-cards-add]").forEach(function (b) {
+          b.addEventListener("click", function () {
+            openCm(0, "card");
+          });
+        });
+        document.querySelectorAll("[data-cards-top]").forEach(function (b) {
+          b.addEventListener("click", function () {
+            openCm(0, "top");
+          });
+        });
+        $("cmX").addEventListener("click", closeCm);
+        $("cmBack").addEventListener("click", closeCm);
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape" && cm.style.display === "flex") closeCm();
+        });
+        $("tChips").innerHTML = [50000, 100000, 200000, 500000]
+          .map(function (n) {
+            return (
+              '<button type="button" data-chip="' +
+              n +
+              '" class="px-3 py-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg cursor-pointer">' +
+              fmt(n).replace(" so'm", "") +
+              "</button>"
+            );
+          })
+          .join("");
+        $("tChips").addEventListener("click", function (e) {
+          var c = e.target.closest("[data-chip]");
+          if (c) $("tAmt").value = c.getAttribute("data-chip");
+        });
+        $("cNum").addEventListener("input", function () {
+          this.value = this.value
+            .replace(/\D/g, "")
+            .slice(0, 16)
+            .replace(/(.{4})/g, "$1 ")
+            .trim();
+          msg("");
+        });
+        $("cExp").addEventListener("input", function () {
+          var v = this.value.replace(/\D/g, "").slice(0, 4);
+          this.value = v.length > 2 ? v.slice(0, 2) + "/" + v.slice(2) : v;
+          msg("");
+        });
+        $("cCvv").addEventListener("input", function () {
+          this.value = this.value.replace(/\D/g, "").slice(0, 3);
+          msg("");
+        });
+        $("cName").addEventListener("input", function () {
+          msg("");
+        });
+        $("tAmt").addEventListener("input", function () {
+          this.value = this.value.replace(/\D/g, "").slice(0, 9);
+          msg("");
+        });
+
+        var cardAct = function (e) {
+          var m = e.target.closest("[data-main]"),
+            d = e.target.closest("[data-del]");
+          if (m) {
+            var id = m.getAttribute("data-main");
+            S.cards.forEach(function (c) {
+              c.main = c.id === id;
+            });
+            S.sel = id;
+          }
+          if (d) {
+            var did = d.getAttribute("data-del");
+            S.cards.forEach(function (c) {
+              if (c.id === did) S.bal += c.bal || 0;
+            });
+            S.cards = S.cards.filter(function (c) {
+              return c.id !== did;
+            });
+            if (
+              S.cards.length &&
+              !S.cards.some(function (c) {
+                return c.main;
+              })
+            )
+              S.cards[0].main = true;
+            if (S.sel === did) S.sel = main() ? main().id : "";
+            if (S.auto.card === did) S.auto.card = "";
+          }
+          if (m || d) {
+            save();
+            renderCards();
+            stats();
+          }
+        };
+        $("cmList").addEventListener("click", cardAct);
+        $("cardChips").addEventListener("click", cardAct);
+        function brand(n) {
+          return /^8600/.test(n)
+            ? "Uzcard"
+            : /^9860/.test(n)
+              ? "Humo"
+              : /^4/.test(n)
+                ? "Visa"
+                : "Karta";
+        }
+        $("cmAdd").addEventListener("submit", function (e) {
+          e.preventDefault();
+          var num = $("cNum").value.replace(/\D/g, ""),
+            ex = $("cExp").value.split("/"),
+            mm = +ex[0],
+            yy = 2000 + (+ex[1] || 0),
+            now = new Date();
+          if (num.length !== 16)
+            return msg("Karta raqami 16 ta raqamdan iborat bo'lishi kerak.");
+          if (!/^(8600|9860|4)/.test(num))
+            return msg(
+              "Faqat Uzcard (8600), Humo (9860) yoki Visa (4) kartalari qabul qilinadi.",
+            );
+          if (!$("cName").value.trim())
+            return msg("Karta egasining ismini kiriting.");
+          if (!(mm >= 1 && mm <= 12) || String(ex[1] || "").length !== 2)
+            return msg("Amal qilish muddatini MM/YY ko'rinishida kiriting.");
+          if ($("cCvv").value.length !== 3)
+            return msg("CVV 3 ta raqamdan iborat.");
+          if (S.cards.length >= MAXC)
+            return msg("Ko'pi bilan 10 ta karta biriktirish mumkin.");
+          if (
+            S.cards.some(function (c) {
+              return c.num === num;
+            })
+          )
+            return msg("Bu karta allaqachon biriktirilgan.");
+          var isMain = $("cMain").checked || !S.cards.length;
+          if (isMain)
+            S.cards.forEach(function (c) {
+              c.main = false;
+            });
+          var used = S.cards.map(function (c) {
+              return c.g;
+            }),
+            gi = 0;
+          while (gi < GR.length && used.indexOf(gi) > -1) gi++;
+          var nc = {
+            id: "c" + Date.now().toString(36),
+            num: num,
+            last4: num.slice(-4),
+            brand: brand(num),
+            exp: $("cExp").value,
+            name: $("cName").value.trim().toUpperCase(),
+            main: isMain,
+            g: gi % GR.length,
+            bal: S.bal,
+          };
+          S.bal = 0;
+          S.cards.unshift(nc);
+          if (isMain || !S.sel) S.sel = nc.id;
+          save();
+          renderCards();
+          stats();
+          $("cmList").scrollIntoView({ block: "nearest" });
+          $("cNum").value = "";
+          $("cName").value = "";
+          $("cExp").value = "";
+          $("cCvv").value = "";
+          $("cMain").checked = false;
+          msg("Karta biriktirildi.", true);
+        });
+        $("cmTop").addEventListener("submit", function (e) {
+          e.preventDefault();
+          var amt = +$("tAmt").value,
+            c = S.cards.filter(function (x) {
+              return x.id === $("tCard").value;
+            })[0];
+          if (!c) return msg("Avval karta biriktiring.");
+          if (!(amt >= 1000))
+            return msg("Summa kamida 1 000 so'm bo'lishi kerak.");
+          if (amt > MAXTOP)
+            return msg(
+              "Bir marta ko'pi bilan 50 000 000 so'm to'ldirish mumkin.",
+            );
+          var go = $("tGo");
+          go.disabled = true;
+          go.textContent = "Kartadan yechilmoqda...";
+          setTimeout(function () {
+            var big = amt >= BIG,
+              h = {
+                svc: "",
+                amt: amt,
+                ts: Date.now(),
+                type: "top",
+                status: big ? "wait" : "ok",
+                card: c.last4,
+              };
+            if (big) {
+              h.done = Date.now() + 15000;
+              h.cid = c.id;
+            } else c.bal += amt;
+            S.hist.unshift(h);
+            S.hist = S.hist.slice(0, 60);
+            save();
+            renderCards();
+            stats();
+            hist();
+            SVC.forEach(card);
+            go.disabled = false;
+            go.textContent = "Hisobni to'ldirish";
+            $("tAmt").value = "";
+            closeCm();
+            toast(
+              big
+                ? "Katta summa tekshiruvga yuborildi. Holat: Kutilmoqda."
+                : "Balans " + fmt(amt) + " ga to'ldirildi.",
+            );
+          }, 800);
+        });
+
+        window.addEventListener("ph-auth", function () {
+          load();
+          build();
+          showBonus();
+        });
+        load();
+        build();
+        showBonus();
+        setInterval(tick, 1000);
+      })();
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script>
+    <script src="./mani.js"></script>
+    <script src="https://cdn.jotfor.ms/agent/embedjs/01a17e2530e870008568395045f834f7cf64/embed.js"></script>
+  </body>
+</html>

@@ -2,2177 +2,1151 @@
 <html lang="uz">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pro Hisobchi - Aloqa</title>
-
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
-    <link rel="preconnect" href="https://server.arcgisonline.com" crossorigin />
-    <link rel="preconnect" href="https://tile.openstreetmap.org" crossorigin />
-    <link rel="preconnect" href="https://tile.googleapis.com" crossorigin />
-    <link rel="dns-prefetch" href="https://photon.komoot.io" />
-    <link rel="dns-prefetch" href="https://nominatim.openstreetmap.org" />
-    <link rel="preload" as="image" href="./images/image.png" />
-
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>To'lovlar markazi — Prohisobchi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap"
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"
     />
-    <script
-      src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"
-      defer
-    ></script>
-
     <style>
-      html,
-      body {
-        max-width: 100%;
-        overflow-x: hidden;
+      :root {
+        --bg: #070d1c;
+        --ink: #e8eefc;
+        --mut: #8fa0c4;
+        --brand: #2dd4bf;
+        --brand2: #6366f1;
+        --bad: #ef4444;
+        --ok: #22c55e;
+      }
+      * {
+        box-sizing: border-box;
       }
       body {
-        margin: 0;
+        font-family: Manrope, system-ui, sans-serif;
+        color: var(--ink);
+        background: var(--bg);
         min-height: 100vh;
-        background: radial-gradient(
-            ellipse at 50% 0%,
-            #e6f7ee 0%,
-            #f3fbf6 45%,
-            #e3e8fb 100%
-          )
-          fixed;
+        background-image:
+          radial-gradient(
+            900px 500px at 10% -5%,
+            rgba(45, 212, 191, 0.18),
+            transparent 60%
+          ),
+          radial-gradient(
+            800px 500px at 95% 10%,
+            rgba(99, 102, 241, 0.22),
+            transparent 60%
+          ),
+          radial-gradient(
+            700px 500px at 50% 100%,
+            rgba(236, 72, 153, 0.1),
+            transparent 60%
+          );
+        background-attachment: fixed;
       }
-      .ic {
-        width: 1em;
-        height: 1em;
+      .glass {
+        background: rgba(255, 255, 255, 0.055);
+        border: 1px solid rgba(255, 255, 255, 0.11);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-radius: 22px;
+        box-shadow:
+          0 18px 40px -18px rgba(0, 0, 0, 0.65),
+          inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      }
+      .lift {
+        transition:
+          transform 0.25s,
+          box-shadow 0.25s,
+          border-color 0.25s;
+      }
+      .lift:hover {
+        transform: translateY(-4px);
+        border-color: rgba(45, 212, 191, 0.45);
+        box-shadow: 0 26px 46px -18px rgba(45, 212, 191, 0.28);
+      }
+      .ico {
+        width: 1.5rem;
+        height: 1.5rem;
         fill: none;
         stroke: currentColor;
-        stroke-width: 2;
+        stroke-width: 1.8;
         stroke-linecap: round;
         stroke-linejoin: round;
-        flex-shrink: 0;
       }
-      .gradient-text {
-        background: linear-gradient(135deg, #16a34a, #2563eb);
-        -webkit-background-clip: text;
-        background-clip: text;
-        -webkit-text-fill-color: transparent;
+      .chip {
+        width: 3.2rem;
+        height: 3.2rem;
+        border-radius: 16px;
+        display: grid;
+        place-items: center;
+        flex: none;
       }
-      .gradient-bg {
-        background: linear-gradient(135deg, #16a34a, #2563eb);
-      }
-
-      .glass-card {
-        background: #fff;
-        border: 1.5px solid rgba(16, 185, 129, 0.3);
-        box-shadow: 0 14px 32px -22px rgba(15, 23, 42, 0.38);
-        transition:
-          transform 0.25s ease,
-          box-shadow 0.25s ease,
-          border-color 0.25s ease;
-      }
-      .glass-card.lift:hover {
-        transform: translateY(-5px);
-        border-color: rgba(16, 185, 129, 0.65);
-        box-shadow: 0 24px 44px -24px rgba(37, 99, 235, 0.5);
-      }
-
       .btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: 6px;
-        padding: 10px 16px;
-        font-size: 13px;
+        gap: 0.5rem;
         font-weight: 800;
-        line-height: 1;
         border-radius: 14px;
-        border: 1.5px solid transparent;
+        padding: 0.8rem 1.1rem;
+        transition: all 0.2s;
         cursor: pointer;
-        font-family: inherit;
-        white-space: nowrap;
-        transition:
-          transform 0.2s ease,
-          box-shadow 0.2s ease,
-          background 0.2s ease;
-      }
-      .btn:hover {
-        transform: translateY(-2px);
-      }
-      .btn:active {
-        transform: scale(0.98);
-      }
-      .btn-primary {
-        color: #fff;
-        background: linear-gradient(135deg, #16a34a, #2563eb);
-        box-shadow: 0 12px 24px -10px rgba(37, 99, 235, 0.75);
-      }
-      .btn-blue {
-        color: #fff;
-        background: #2563eb;
-      }
-      .btn-blue:hover {
-        background: #1d4ed8;
-      }
-      .btn-soft {
-        color: #065f46;
-        background: #ecfdf5;
-        border-color: #6ee7b7;
-      }
-      .btn-soft:hover {
-        background: #d1fae5;
-      }
-      .btn-rose {
-        color: #be123c;
-        background: #fff1f2;
-        border-color: #fda4af;
-        padding: 9px;
-      }
-      .btn-white {
-        color: #065f46;
-        background: #fff;
-      }
-      .btn-glass {
-        color: #fff;
-        background: rgba(255, 255, 255, 0.18);
-        border-color: rgba(255, 255, 255, 0.55);
-      }
-      .btn-lg {
-        padding: 14px 20px;
-        font-size: 14px;
-        border-radius: 16px;
-      }
-
-      .seg {
-        display: inline-flex;
-        gap: 4px;
-        padding: 4px;
-        background: #fff;
-        border: 1.5px solid #cbd5e1;
-        border-radius: 14px;
-      }
-      .seg-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 8px 14px;
-        border-radius: 10px;
         border: 0;
-        background: transparent;
-        cursor: pointer;
-        font-family: inherit;
-        font-size: 13px;
-        font-weight: 800;
-        color: #374151;
-        transition:
-          background 0.2s ease,
-          color 0.2s ease;
+        color: #04121a;
+        background: linear-gradient(135deg, #2dd4bf, #7dd3fc);
       }
-      .seg-btn:hover {
-        background: #ecfdf5;
-        color: #047857;
+      .btn:hover:not(:disabled) {
+        filter: brightness(1.08);
+        box-shadow: 0 10px 24px -8px rgba(45, 212, 191, 0.6);
       }
-      .seg-btn.active {
+      .btn.ghost {
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--ink);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+      }
+      .btn.due {
+        background: linear-gradient(135deg, #ef4444, #f97316);
         color: #fff;
-        background: linear-gradient(135deg, #16a34a, #2563eb);
       }
-
-      .field {
+      .btn:disabled {
+        cursor: not-allowed;
+        background: rgba(34, 197, 94, 0.16);
+        color: #86efac;
+        border: 1px solid rgba(34, 197, 94, 0.35);
+      }
+      .inp {
         width: 100%;
-        padding: 11px 14px;
-        border-radius: 14px;
-        background: #fff;
-        border: 1.5px solid #cbd5e1;
-        font-size: 14px;
-        font-family: inherit;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 12px;
+        padding: 0.75rem 0.9rem;
+        color: var(--ink);
         outline: none;
-        transition:
-          border-color 0.2s ease,
-          box-shadow 0.2s ease;
+        transition: border 0.2s;
       }
-      .field:focus {
-        border-color: #10b981;
-        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.18);
+      .inp:focus {
+        border-color: var(--brand);
       }
-
-      .badge {
-        font-size: 11px;
+      .inp option {
+        color: #111;
+      }
+      .warn {
+        color: #fca5a5;
         font-weight: 800;
-        padding: 3px 10px;
-        border-radius: 9999px;
-      }
-      .badge-green {
-        background: #d1fae5;
-        color: #065f46;
-      }
-      .badge-blue {
-        background: #dbeafe;
-        color: #1e40af;
-      }
-
-      /* ---------- Xarita (Google Maps uslubi) ---------- */
-      .map-frame-box {
-        position: relative;
-        overflow: hidden;
-        isolation: isolate;
-      }
-      .leaflet-tile {
-        image-rendering: auto;
-        backface-visibility: hidden;
-      }
-      .leaflet-fade-anim .leaflet-tile {
-        transition: opacity 0.12s linear;
-      }
-      .leaflet-container {
-        width: 100% !important;
-        height: 100% !important;
-        z-index: 10;
-        font-family: Roboto, Arial, system-ui, sans-serif;
-        background: #e5e3df;
-      }
-      .leaflet-bar {
-        border: 0 !important;
-        border-radius: 8px !important;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
-        overflow: hidden;
-      }
-      .leaflet-container .leaflet-bar a,
-      .leaflet-container .leaflet-bar a:hover,
-      .leaflet-container .leaflet-bar a:focus,
-      .leaflet-container .leaflet-bar a:active {
-        box-sizing: border-box !important;
-        width: 44px !important;
-        height: 44px !important;
-        line-height: 44px !important;
-        font-size: 24px !important;
-        text-indent: 0 !important;
-        transform: none !important;
-        transition:
-          background 0.15s ease,
-          color 0.15s ease;
-        color: #666;
-        background: #fff;
-        border-bottom: 1px solid #e6e6e6;
-      }
-      .leaflet-container .leaflet-bar a:hover {
-        background: #f1f1f1;
-        color: #000;
-      }
-      .leaflet-bar a:last-child {
-        border-bottom: 0;
-      }
-      .leaflet-control-scale-line {
-        background: rgba(255, 255, 255, 0.8);
-        border-color: #777;
-        color: #333;
-        font-size: 10px;
-      }
-      .leaflet-control-attribution {
-        font-size: 10px;
-        background: rgba(255, 255, 255, 0.75) !important;
-      }
-      .leaflet-popup-content-wrapper {
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-      }
-      .gm-pin {
-        background: none;
-        border: 0;
-        filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.35));
-      }
-      .gm-locate {
-        width: 44px;
-        height: 44px;
+        font-size: 0.8rem;
         display: flex;
+        gap: 0.35rem;
         align-items: center;
-        justify-content: center;
-        background: #fff;
-        color: #666;
-        border-radius: 8px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        min-height: 1.2rem;
+      }
+      .tog {
+        width: 56px;
+        height: 30px;
+        border-radius: 99px;
+        background: rgba(255, 255, 255, 0.15);
+        position: relative;
         cursor: pointer;
-        border: 0;
+        transition: background 0.25s;
+        flex: none;
       }
-      .gm-locate:hover {
-        background: #f1f1f1;
-        color: #1a73e8;
-      }
-      .gm-me {
-        width: 16px;
-        height: 16px;
-        background: #4285f4;
-        border: 3px solid #fff;
+      .tog::after {
+        content: "";
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 24px;
+        height: 24px;
         border-radius: 50%;
-        box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.35);
+        background: #fff;
+        transition: transform 0.25s;
       }
-
-      /* Mobil menyu */
-      #drawer-navigation {
-        transform: translateX(-100%);
-        transition: transform 0.25s ease;
+      .tog.on {
+        background: linear-gradient(135deg, #2dd4bf, #6366f1);
       }
-      #drawer-navigation.open {
-        transform: none;
+      .tog.on::after {
+        transform: translateX(26px);
       }
-      #drawer-backdrop {
+      .badge {
+        padding: 0.25rem 0.65rem;
+        border-radius: 99px;
+        font-size: 0.75rem;
+        font-weight: 800;
+        background: rgba(34, 197, 94, 0.16);
+        color: #86efac;
+      }
+      .modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(3, 7, 18, 0.7);
+        backdrop-filter: blur(6px);
         display: none;
+        place-items: center;
+        padding: 1rem;
+        z-index: 50;
       }
-      #drawer-backdrop.open {
-        display: block;
+      .modal.open {
+        display: grid;
+      }
+      .step-line {
+        position: absolute;
+        top: 1.7rem;
+        left: 12%;
+        right: 12%;
+        height: 2px;
+        background: repeating-linear-gradient(
+          90deg,
+          rgba(255, 255, 255, 0.25) 0 8px,
+          transparent 8px 14px
+        );
+      }
+      th {
+        color: var(--mut);
+        font-weight: 600;
+        font-size: 0.8rem;
+        text-align: left;
+        padding: 0.7rem 1rem;
+      }
+      td {
+        padding: 0.85rem 1rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        white-space: nowrap;
+      }
+      #toast {
+        position: fixed;
+        bottom: 22px;
+        left: 50%;
+        transform: translate(-50%, 30px);
+        opacity: 0;
+        transition: 0.3s;
+        z-index: 80;
+        padding: 0.8rem 1.2rem;
+        border-radius: 14px;
+        font-weight: 700;
+        background: #0f1a33;
+        border: 1px solid rgba(45, 212, 191, 0.5);
+        pointer-events: none;
+      }
+      #toast.show {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+      .ccard {
+        border-radius: 16px;
+        padding: 1rem;
+        background: linear-gradient(135deg, #1e3a8a, #6366f1 60%, #2dd4bf);
+        position: relative;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          transition: none !important;
+        }
       }
     </style>
   </head>
-
-  <body
-    class="font-sans antialiased text-gray-800 flex flex-col justify-between min-w-0"
-  >
-    <!-- IKONKALAR -->
-    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
-      <symbol id="i-phone" viewBox="0 0 24 24">
-        <path
-          d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"
-        />
-      </symbol>
-      <symbol id="i-send" viewBox="0 0 24 24">
-        <path d="m22 2-7 20-4-9-9-4Z" />
-        <path d="M22 2 11 13" />
-      </symbol>
-      <symbol id="i-pin" viewBox="0 0 24 24">
-        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-        <circle cx="12" cy="10" r="3" />
-      </symbol>
-      <symbol id="i-arrow" viewBox="0 0 24 24">
-        <path d="M5 12h14" />
-        <path d="m12 5 7 7-7 7" />
-      </symbol>
-      <symbol id="i-check" viewBox="0 0 24 24">
-        <circle cx="12" cy="12" r="10" />
-        <path d="m9 12 2 2 4-4" />
-      </symbol>
-      <symbol id="i-globe" viewBox="0 0 24 24">
-        <circle cx="12" cy="12" r="10" />
-        <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
-        <path d="M2 12h20" />
-      </symbol>
-      <symbol id="i-max" viewBox="0 0 24 24">
-        <path d="M15 3h6v6" />
-        <path d="m21 3-7 7" />
-        <path d="m3 21 7-7" />
-        <path d="M9 21H3v-6" />
-      </symbol>
-      <symbol id="i-map" viewBox="0 0 24 24">
-        <path d="M9 3 3 5.5v15L9 18l6 2.5 6-2.5v-15L15 6 9 3Z" />
-        <path d="M9 3v15" />
-        <path d="M15 6v14.5" />
-      </symbol>
-      <symbol id="i-layers" viewBox="0 0 24 24">
-        <path d="m12 2 10 5-10 5L2 7z" />
-        <path d="m2 17 10 5 10-5" />
-        <path d="m2 12 10 5 10-5" />
-      </symbol>
-      <symbol id="i-search" viewBox="0 0 24 24">
-        <circle cx="11" cy="11" r="8" />
-        <path d="m21 21-4.3-4.3" />
-      </symbol>
-      <symbol id="i-nav" viewBox="0 0 24 24">
-        <polygon points="3 11 22 2 13 21 11 13 3 11" />
-      </symbol>
-      <symbol id="i-copy" viewBox="0 0 24 24">
-        <rect width="14" height="14" x="8" y="8" rx="2" />
-        <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
-      </symbol>
-      <symbol id="i-x" viewBox="0 0 24 24">
-        <path d="M18 6 6 18" />
-        <path d="m6 6 12 12" />
-      </symbol>
-      <symbol id="i-menu" viewBox="0 0 24 24">
-        <path d="M4 6h16M4 12h16M4 18h16" />
-      </symbol>
-      <symbol id="i-locate" viewBox="0 0 24 24">
-        <circle cx="12" cy="12" r="3" />
-        <circle cx="12" cy="12" r="8" />
-        <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
-      </symbol>
-    </svg>
-
-    <!-- HEADER -->
-    <header
-      class="fixed top-0 left-0 w-full z-40 border-b border-green-200/50 shadow-sm"
-      style="
-        background-color: rgba(255, 255, 255, 0.188);
-        backdrop-filter: blur(6px);
-      "
-    >
-      <div
-        class="max-w-[1200px] mx-auto w-full px-4 sm:px-6 py-3 flex items-center justify-between"
-      >
-        <a href="./index.html" class="flex items-center gap-3 shrink-0">
-          <img
-            src="./images/image.png"
-            class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl shadow-md border border-green-100 object-cover"
-            alt="Pro Hisobchi Logo"
-          />
-          <div class="flex flex-col">
-            <span
-              class="text-[9px] font-extrabold uppercase tracking-widest text-emerald-700 bg-emerald-100 px-1.5 py-[1px] rounded w-fit"
-              >PRO</span
+  <body>
+    <div class="max-w-6xl mx-auto px-4 py-6 space-y-8">
+      <!-- SECTION 1: HERO -->
+      <section class="glass p-6 md:p-9 grid md:grid-cols-2 gap-8 items-center">
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div
+              class="chip"
+              style="
+                background: linear-gradient(135deg, #2dd4bf, #6366f1);
+                color: #fff;
+              "
             >
-            <h2
-              class="text-lg sm:text-xl font-black tracking-tight gradient-text"
-            >
-              Pro Hisobchi
-            </h2>
+              <svg class="ico" viewBox="0 0 24 24" data-i="shield"></svg>
+            </div>
+            <div class="font-extrabold text-xl">
+              Pro<span style="color: var(--brand)">hisobchi</span>
+            </div>
           </div>
-        </a>
-
-        <nav class="nav hidden md:flex items-center gap-8">
-          <a
-            href="./index.html"
-            class="text-sm font-semibold text-gray-700 hover:text-emerald-600 transition-colors"
-            >Bosh sahifa</a
+          <h1 class="text-3xl md:text-5xl font-extrabold leading-tight">
+            Prohisobchi To'lovlar Markazi
+          </h1>
+          <p class="mt-3" style="color: var(--mut)">
+            Gaz, svet, suv, axlat va raqamli xizmatlar uchun barcha to'lovlar
+            bitta joyda. Muddat kelganda sizni ogohlantiramiz.
+          </p>
+          <div class="mt-6 flex gap-3 flex-wrap">
+            <button class="btn" onclick="openModal('topup')">
+              <svg class="ico" viewBox="0 0 24 24" data-i="plus"></svg>Balansni
+              to'ldirish
+            </button>
+            <a class="btn ghost" href="#core">Xizmatlarga o'tish</a>
+          </div>
+        </div>
+        <div
+          class="glass p-6"
+          style="
+            background: linear-gradient(
+              135deg,
+              rgba(45, 212, 191, 0.16),
+              rgba(99, 102, 241, 0.18)
+            );
+          "
+        >
+          <div class="flex justify-between items-center">
+            <span style="color: var(--mut)">Umumiy balans</span
+            ><svg class="ico" viewBox="0 0 24 24" data-i="wallet"></svg>
+          </div>
+          <div id="heroBal" class="text-4xl font-extrabold mt-1">0 so'm</div>
+          <div
+            class="mt-5 pt-4 border-t border-white/10 flex justify-between items-end"
           >
-          <a
-            href="./xizmatlar.html"
-            class="text-sm font-semibold text-gray-700 hover:text-emerald-600 transition-colors"
-            >Xizmatlar</a
-          >
-          <a
-            href="./to'lovlar.html"
-            class="text-sm font-semibold text-gray-700 hover:text-emerald-600 transition-colors"
-            >To'lovlar</a
-          >
-          <a
-            href="./aloqa.html"
-            class="text-sm font-semibold text-gray-700 hover:text-emerald-600 transition-colors"
-            >Aloqa</a
-          >
-        </nav>
-
-        <div class="flex items-center gap-3 shrink-0">
-          <!-- Mehmon uchun: "Kirish" tugmasi (profil o'rnida) -->
-          <button
-            type="button"
-            id="phSignInBtn"
-            data-open-login
-            class="px-5 py-2 text-sm font-bold text-white rounded-xl b1 cursor-pointer hover:opacity-95 transition-opacity"
-          >
-            Kirish
-          </button>
-
-          <!-- Kirgan foydalanuvchi uchun: Profil -->
-          <a href="./profil.html" id="phProfileLink" class="relative block">
-            <div class="flex items-center gap-[10px]">
-              <span
-                data-avatar
-                class="ph-avatar w-9 h-9 sm:w-10 sm:h-10 ring-2 ring-emerald-500/60 text-base"
-                role="img"
-                aria-label="Profil"
-              ></span>
-              <div>
-                <p
-                  class="gradient-text text-[20px] max-[768px]:hidden font-bold"
-                >
-                  Profil
-                </p>
+            <div>
+              <div style="color: var(--mut)" class="text-sm">Joriy qarz</div>
+              <div
+                id="heroDebt"
+                class="text-2xl font-extrabold"
+                style="color: #fca5a5"
+              >
+                0 so'm
               </div>
             </div>
-          </a>
+            <div class="text-xs text-right" style="color: var(--mut)">
+              Real vaqtda yangilanadi<br /><span
+                id="clock"
+                class="font-bold"
+                style="color: var(--ink)"
+              ></span>
+            </div>
+          </div>
+        </div>
+      </section>
 
-          <button
-            type="button"
-            data-drawer-target="drawer-navigation"
-            data-drawer-show="drawer-navigation"
-            aria-controls="drawer-navigation"
-            class="md:hidden p-2 text-gray-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all cursor-pointer"
-          >
-            <svg
-              class="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+      <!-- SECTION 2: STATS -->
+      <section
+        class="grid grid-cols-2 lg:grid-cols-4 gap-4"
+        id="stats"
+      ></section>
+
+      <!-- SECTION 3: GUIDE -->
+      <section class="glass p-6 md:p-8">
+        <h2 class="text-2xl font-extrabold mb-6">Qanday to'lanadi?</h2>
+        <div class="relative grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div class="step-line hidden md:block"></div>
+          <div class="relative text-center">
+            <div
+              class="chip mx-auto mb-3"
+              style="background: #134e4a; color: #5eead4"
             >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            </svg>
+              <svg class="ico" viewBox="0 0 24 24" data-i="card"></svg>
+            </div>
+            <div class="font-extrabold">1. Karta qo'shing</div>
+            <p class="text-sm" style="color: var(--mut)">
+              Uzcard, Humo yoki Visa kartangizni ulang.
+            </p>
+          </div>
+          <div class="relative text-center">
+            <div
+              class="chip mx-auto mb-3"
+              style="background: #312e81; color: #a5b4fc"
+            >
+              <svg class="ico" viewBox="0 0 24 24" data-i="wallet"></svg>
+            </div>
+            <div class="font-extrabold">2. Balansni to'ldiring</div>
+            <p class="text-sm" style="color: var(--mut)">
+              Kerakli summani kiriting va tasdiqlang.
+            </p>
+          </div>
+          <div class="relative text-center">
+            <div
+              class="chip mx-auto mb-3"
+              style="background: #78350f; color: #fcd34d"
+            >
+              <svg class="ico" viewBox="0 0 24 24" data-i="doc"></svg>
+            </div>
+            <div class="font-extrabold">3. Xizmatni tanlang</div>
+            <p class="text-sm" style="color: var(--mut)">
+              Kartochkadagi "To'lash" tugmasini bosing.
+            </p>
+          </div>
+          <div class="relative text-center">
+            <div
+              class="chip mx-auto mb-3"
+              style="background: #14532d; color: #86efac"
+            >
+              <svg class="ico" viewBox="0 0 24 24" data-i="check"></svg>
+            </div>
+            <div class="font-extrabold">4. Chekni oling</div>
+            <p class="text-sm" style="color: var(--mut)">
+              To'lov tarixda saqlanadi, keyingi muddat ko'rsatiladi.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 4: CORE -->
+      <section id="core">
+        <h2 class="text-2xl font-extrabold mb-4">Asosiy kommunal xizmatlar</h2>
+        <div
+          id="coreGrid"
+          class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4"
+        ></div>
+      </section>
+
+      <!-- SECTION 5: EXTRA -->
+      <section>
+        <h2 class="text-2xl font-extrabold mb-4">
+          Qo'shimcha raqamli xizmatlar
+        </h2>
+        <div
+          id="extraGrid"
+          class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4"
+        ></div>
+      </section>
+
+      <!-- SECTION 6: AUTO -->
+      <section class="glass p-6 md:p-8 grid md:grid-cols-2 gap-6 items-center">
+        <div class="flex gap-4">
+          <div class="chip" style="background: #312e81; color: #a5b4fc">
+            <svg class="ico" viewBox="0 0 24 24" data-i="repeat"></svg>
+          </div>
+          <div>
+            <h2 class="text-2xl font-extrabold">Avtomatik to'lovlar</h2>
+            <p style="color: var(--mut)" class="mt-1">
+              Muddat kelganda to'lov asosiy kartadagi balansdan o'zi yechiladi.
+            </p>
+          </div>
+        </div>
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="font-bold" id="autoLbl">O'chirilgan</span>
+            <div id="autoTog" class="tog" role="switch" tabindex="0"></div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <label class="text-sm" style="color: var(--mut)"
+              >Oyning kuni<select id="autoDay" class="inp mt-1"></select
+            ></label>
+            <label class="text-sm" style="color: var(--mut)"
+              >To'lov kartasi<select id="autoCard" class="inp mt-1"></select
+            ></label>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 7: HISTORY -->
+      <section class="glass p-6 md:p-8">
+        <div class="flex flex-wrap gap-3 justify-between items-center mb-4">
+          <h2 class="text-2xl font-extrabold">To'lovlar tarixi</h2>
+          <select id="hFilter" class="inp" style="width: auto"></select>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead>
+              <tr>
+                <th>Xizmat</th>
+                <th>Summa</th>
+                <th>Sana</th>
+                <th>Karta</th>
+                <th>Holat</th>
+              </tr>
+            </thead>
+            <tbody id="hBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- SECTION 8: CARDS -->
+      <section class="glass p-6 md:p-8">
+        <div class="flex flex-wrap gap-3 justify-between items-center mb-4">
+          <h2 class="text-2xl font-extrabold">Mening kartalarim</h2>
+          <div class="flex gap-2">
+            <button class="btn ghost" onclick="openModal('card')">
+              <svg class="ico" viewBox="0 0 24 24" data-i="card"></svg>Karta
+              qo'shish</button
+            ><button class="btn" onclick="openModal('topup')">
+              <svg class="ico" viewBox="0 0 24 24" data-i="plus"></svg
+              >To'ldirish
+            </button>
+          </div>
+        </div>
+        <div
+          id="cardList"
+          class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"
+        ></div>
+      </section>
+
+      <!-- SECTION 9: FOOTER -->
+      <footer class="glass p-6 md:p-8">
+        <div class="grid md:grid-cols-3 gap-6 items-center">
+          <div class="flex gap-3 items-center">
+            <div class="chip" style="background: #14532d; color: #86efac">
+              <svg class="ico" viewBox="0 0 24 24" data-i="lock"></svg>
+            </div>
+            <div>
+              <div class="font-extrabold">SSL 256-bit shifrlash</div>
+              <div class="text-sm" style="color: var(--mut)">
+                Karta ma'lumotlari uchinchi shaxslarga berilmaydi.
+              </div>
+            </div>
+          </div>
+          <div class="flex gap-3 items-center">
+            <div class="chip" style="background: #134e4a; color: #5eead4">
+              <svg class="ico" viewBox="0 0 24 24" data-i="shield"></svg>
+            </div>
+            <div>
+              <div class="font-extrabold">Himoyalangan to'lovlar</div>
+              <div class="text-sm" style="color: var(--mut)">
+                Har bir amal tarixda qayd etiladi.
+              </div>
+            </div>
+          </div>
+          <div class="md:text-right">
+            <a href="aloqa.html" class="btn"
+              ><svg class="ico" viewBox="0 0 24 24" data-i="headset"></svg
+              >Yordam markaziga o'tish</a
+            >
+          </div>
+        </div>
+        <div
+          class="mt-6 pt-4 border-t border-white/10 text-sm text-center"
+          style="color: var(--mut)"
+        >
+          © <span id="yr"></span> Prohisobchi. Barcha huquqlar himoyalangan.
+        </div>
+      </footer>
+    </div>
+
+    <!-- MODAL -->
+    <div
+      id="modal"
+      class="modal"
+      onclick="if (event.target === this) closeModal();"
+    >
+      <div class="glass p-6 w-full max-w-md" style="background: #0d1730">
+        <div class="flex gap-2 mb-4">
+          <button
+            id="tabCard"
+            class="btn ghost flex-1"
+            onclick="openModal('card')"
+          >
+            Karta qo'shish
+          </button>
+          <button
+            id="tabTop"
+            class="btn ghost flex-1"
+            onclick="openModal('topup')"
+          >
+            Balans to'ldirish
           </button>
         </div>
-      </div>
-    </header>
-
-    <!-- MOBIL MENYU -->
-    <div id="drawer-backdrop" class="fixed inset-0 z-40 bg-black/40"></div>
-    <div
-      id="drawer-navigation"
-      class="fixed top-0 left-0 z-50 h-screen p-5 overflow-y-auto bg-white w-80 max-w-[85vw] border-e border-emerald-100 shadow-2xl"
-      tabindex="-1"
-    >
-      <div
-        class="pb-4 mb-4 border-b border-gray-100 flex items-center justify-between"
-      >
-        <a href="./index.html" class="flex items-center space-x-3">
-          <img
-            src="./images/image.png"
-            width="40"
-            height="40"
-            decoding="async"
-            class="h-10 w-10 rounded-xl border border-emerald-100"
-            alt="Pro Hisobchi Logo"
+        <div id="paneCard" class="space-y-3">
+          <input
+            id="cNum"
+            class="inp"
+            inputmode="numeric"
+            maxlength="19"
+            placeholder="Karta raqami: 8600 0000 0000 0000"
           />
-          <div class="flex flex-col">
-            <span
-              class="text-[9px] font-extrabold tracking-widest text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded w-fit"
-              >PRO</span
-            >
-            <span class="text-base font-bold gradient-text">Pro Hisobchi</span>
-          </div>
-        </a>
-        <button
-          type="button"
-          id="drawerClose"
-          aria-label="Menyuni yopish"
-          class="text-gray-500 bg-gray-50 border border-gray-200 hover:bg-emerald-50 hover:text-emerald-600 rounded-xl w-9 h-9 flex items-center justify-center cursor-pointer"
-        >
-          <svg class="ic w-5 h-5"><use href="#i-x" /></svg>
+          <div
+            id="cType"
+            class="text-sm font-bold"
+            style="color: var(--brand)"
+          ></div>
+          <input
+            id="cName"
+            class="inp"
+            placeholder="Karta egasi (ISM FAMILIYA)"
+          />
+          <input
+            id="cExp"
+            class="inp"
+            maxlength="5"
+            placeholder="Amal qilish muddati: MM/YY"
+          />
+          <label class="flex gap-2 items-center text-sm"
+            ><input id="cMain" type="checkbox" /> Asosiy karta qilib
+            belgilash</label
+          >
+          <button class="btn w-full" onclick="addCard()">
+            Kartani saqlash
+          </button>
+        </div>
+        <div id="paneTop" class="space-y-3 hidden">
+          <select id="tCard" class="inp"></select>
+          <input
+            id="tAmt"
+            class="inp"
+            type="number"
+            min="1000"
+            step="1000"
+            placeholder="Summa (so'm)"
+          />
+          <div class="flex gap-2 flex-wrap" id="quick"></div>
+          <button class="btn w-full" onclick="topUp()">
+            Balansni to'ldirish
+          </button>
+        </div>
+        <button class="btn ghost w-full mt-3" onclick="closeModal()">
+          Yopish
         </button>
       </div>
-      <ul class="space-y-2 font-medium">
-        <li>
-          <a
-            href="./index.html"
-            class="flex items-center p-3 text-gray-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 text-sm font-semibold"
-            >Bosh sahifa</a
-          >
-        </li>
-        <li>
-          <a
-            href="./xizmatlar.html"
-            class="flex items-center p-3 text-gray-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 text-sm font-semibold"
-            >Xizmatlar</a
-          >
-        </li>
-        <li>
-          <a
-            href="./to'lovlar.html"
-            class="flex items-center p-3 text-gray-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 text-sm font-semibold"
-            ><span class="flex-1">To'lovlar</span
-            ><span
-              class="bg-emerald-100 border border-emerald-200 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-md"
-              >Pro</span
-            ></a
-          >
-        </li>
-        <li>
-          <a
-            href="./aloqa.html"
-            class="flex items-center p-3 text-emerald-700 bg-emerald-50 rounded-xl text-sm font-extrabold"
-            >Aloqa</a
-          >
-        </li>
-      </ul>
     </div>
-
-    <!-- ASOSIY KONTENT -->
-    <main
-      class="max-w-[1200px] mx-auto w-full px-3 sm:px-6 pt-24 sm:pt-28 pb-16 space-y-12 sm:space-y-16 min-w-0"
-    >
-      <section class="text-center max-w-3xl mx-auto min-w-0">
-        <div
-          class="inline-flex items-center gap-2 text-[10px] sm:text-xs font-extrabold uppercase tracking-wider text-emerald-800 bg-white border-2 border-emerald-200 px-4 py-1.5 rounded-full shadow-md mb-4"
-        >
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-          <span>Aloqa va joylashuv markazi</span>
-        </div>
-        <h1
-          class="text-3xl sm:text-6xl font-black tracking-tight text-gray-900 leading-tight mb-3"
-        >
-          Biz bilan <span class="gradient-text">oson bog‘laning</span>
-        </h1>
-        <p class="text-gray-600 text-sm sm:text-lg leading-relaxed">
-          Buxgalteriya, soliq hisobotlari va
-          <strong>Pro Hisobchi</strong> xizmatlari bo‘yicha savollaringizga
-          tezkor javob beramiz.
-        </p>
-      </section>
-
-      <section class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 min-w-0">
-        <div class="glass-card lift rounded-3xl p-5 sm:p-7 min-w-0">
-          <div
-            class="w-12 h-12 rounded-2xl gradient-bg text-white flex items-center justify-center mb-4 shadow-lg"
-          >
-            <svg class="ic w-6 h-6"><use href="#i-phone" /></svg>
-          </div>
-          <h3 class="text-lg sm:text-xl font-extrabold text-gray-900 mb-1">
-            Telefon
-          </h3>
-          <p class="text-xs text-gray-500 mb-2">
-            Dushanba – Shanba, 09:00 – 18:00
-          </p>
-          <a
-            href="tel:+998901234567"
-            class="text-lg font-black text-emerald-700 hover:text-blue-600 break-all"
-            >+998 (90) 123-45-67</a
-          >
-        </div>
-        <div class="glass-card lift rounded-3xl p-5 sm:p-7 min-w-0">
-          <div
-            class="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center mb-4 shadow-lg"
-          >
-            <svg class="ic w-6 h-6"><use href="#i-send" /></svg>
-          </div>
-          <h3 class="text-lg sm:text-xl font-extrabold text-gray-900 mb-1">
-            Telegram & Pochta
-          </h3>
-          <p class="text-xs text-gray-500 mb-2">Onlayn murojaat va hujjatlar</p>
-          <a
-            href="https://t.me/"
-            target="_blank"
-            rel="noopener"
-            class="block text-base font-extrabold text-blue-600 hover:text-emerald-600 break-all"
-            >@prohisobchi_uz</a
-          >
-          <a
-            href="mailto:info@prohisobchi.uz"
-            class="block text-sm font-bold text-gray-700 hover:text-blue-600 break-all mt-0.5"
-            >info@prohisobchi.uz</a
-          >
-        </div>
-        <div class="glass-card lift rounded-3xl p-5 sm:p-7 min-w-0">
-          <div
-            class="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center mb-4 shadow-lg"
-          >
-            <svg class="ic w-6 h-6"><use href="#i-pin" /></svg>
-          </div>
-          <h3 class="text-lg sm:text-xl font-extrabold text-gray-900 mb-1">
-            Ofis manzili
-          </h3>
-          <p class="text-xs text-gray-500 mb-2">Shaxsiy uchrashuvlar uchun</p>
-          <p class="text-base font-extrabold text-gray-900">
-            Toshkent sh., Amir Temur shoh ko‘chasi, 108-uy
-          </p>
-        </div>
-      </section>
-
-      <section
-        class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start min-w-0"
-      >
-        <!-- Forma -->
-        <div class="lg:col-span-5 glass-card rounded-3xl p-4 sm:p-8 min-w-0">
-          <h2 class="text-2xl sm:text-3xl font-black text-gray-900 mb-1">
-            Xabar qoldirish
-          </h2>
-          <p class="text-xs sm:text-sm text-gray-500 mb-5">
-            Ma’lumotlaringizni yozing — mutaxassisimiz aloqaga chiqadi.
-          </p>
-          <form id="contactForm" class="space-y-4">
-            <div class="min-w-0">
-              <label
-                class="block text-xs font-extrabold uppercase tracking-wider text-gray-600 mb-1.5"
-                >Ismingiz *</label
-              >
-              <input
-                type="text"
-                required
-                placeholder="Masalan: Azizbek Karimov"
-                class="field"
-              />
-            </div>
-            <div class="min-w-0">
-              <label
-                class="block text-xs font-extrabold uppercase tracking-wider text-gray-600 mb-1.5"
-                >Telefon raqam *</label
-              >
-              <input
-                type="tel"
-                required
-                placeholder="+998 90 123 45 67"
-                class="field"
-              />
-            </div>
-            <div class="min-w-0">
-              <label
-                class="block text-xs font-extrabold uppercase tracking-wider text-gray-600 mb-1.5"
-                >Murojaat mavzusi</label
-              >
-              <select class="field">
-                <option value="buxgalteriya">Buxgalteriya xizmati</option>
-                <option value="soliq">Soliq hisobotlari</option>
-                <option value="pro">Pro tarif va to‘lovlar</option>
-                <option value="boshqa">Boshqa savol</option>
-              </select>
-            </div>
-            <div class="min-w-0">
-              <label
-                class="block text-xs font-extrabold uppercase tracking-wider text-gray-600 mb-1.5"
-                >Xabaringiz *</label
-              >
-              <textarea
-                rows="4"
-                required
-                placeholder="Savolingizni yozing..."
-                class="field resize-none"
-              ></textarea>
-            </div>
-            <button type="submit" class="btn btn-primary btn-lg w-full">
-              <span>Yuborish</span
-              ><svg class="ic w-4 h-4"><use href="#i-arrow" /></svg>
-            </button>
-            <div
-              id="formSuccess"
-              class="hidden p-3.5 rounded-2xl bg-emerald-50 border-2 border-emerald-200 text-emerald-900 text-xs sm:text-sm font-bold items-center gap-2"
-            >
-              <svg class="ic w-5 h-5 text-emerald-600">
-                <use href="#i-check" /></svg
-              ><span>Xabaringiz muvaffaqiyatli yuborildi!</span>
-            </div>
-          </form>
-        </div>
-
-        <!-- Xarita -->
-        <div
-          class="lg:col-span-7 glass-card rounded-3xl p-4 sm:p-6 min-w-0 space-y-4"
-        >
-          <div class="flex flex-col gap-3">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <div class="min-w-0">
-                <div class="flex items-center gap-2 flex-wrap">
-                  <h3 class="text-lg sm:text-xl font-black text-gray-900">
-                    Xarita
-                  </h3>
-                  <span id="mapStatusBadge" class="badge badge-green"
-                    >Xarita</span
-                  >
-                </div>
-                <p class="text-[11px] sm:text-xs text-gray-500">
-                  Dunyodagi istalgan joyni qidiring yoki sputnik ko‘rinishiga
-                  o‘ting
-                </p>
-              </div>
-              <div class="flex items-center gap-2 flex-wrap">
-                <button
-                  type="button"
-                  onclick="resetToGlobalView()"
-                  class="btn btn-soft"
-                >
-                  <svg class="ic w-4 h-4"><use href="#i-globe" /></svg
-                  ><span>Dunyo</span>
-                </button>
-                <button
-                  type="button"
-                  onclick="openFullscreenMap()"
-                  class="btn btn-blue"
-                >
-                  <svg class="ic w-4 h-4"><use href="#i-max" /></svg
-                  ><span>Kattalashtirish</span>
-                </button>
-              </div>
-            </div>
-
-            <div class="flex justify-end">
-              <div class="seg">
-                <button
-                  type="button"
-                  data-mode-btn="standard"
-                  onclick="setMapMode('standard')"
-                  class="seg-btn active"
-                >
-                  <svg class="ic w-4 h-4"><use href="#i-map" /></svg
-                  ><span>Xarita</span>
-                </button>
-                <button
-                  type="button"
-                  data-mode-btn="satellite"
-                  onclick="setMapMode('satellite')"
-                  class="seg-btn"
-                >
-                  <svg class="ic w-4 h-4"><use href="#i-layers" /></svg
-                  ><span>Sputnik</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div
-            id="mapHomeSlot"
-            class="map-frame-box rounded-2xl border-2 border-emerald-300 w-full h-72 sm:h-96 bg-[#e5e3df]"
-          >
-            <div id="leafletMap" class="w-full h-full"></div>
-          </div>
-
-          <div class="relative min-w-0">
-            <label
-              for="mapSearchInput"
-              class="block text-xs font-extrabold text-gray-700 mb-1.5"
-              >Shahar, tuman, ko‘cha, joy yoki davlat nomini yozing:</label
-            >
-            <div class="flex flex-col sm:flex-row gap-2 min-w-0">
-              <div class="relative flex-1 min-w-0">
-                <input
-                  id="mapSearchInput"
-                  type="text"
-                  autocomplete="off"
-                  oninput="handleLiveSuggestions(this.value, 'main')"
-                  onkeydown="
-                    if (event.key === 'Enter') {
-                      event.preventDefault();
-                      searchExactLocation('main');
-                    }
-                  "
-                  placeholder="Masalan: Chorvoq, Istanbul, Eiffel tower, Amir Temur..."
-                  class="field"
-                  style="padding-left: 40px"
-                />
-                <svg
-                  class="ic w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
-                >
-                  <use href="#i-search" />
-                </svg>
-              </div>
-              <button
-                type="button"
-                onclick="searchExactLocation('main')"
-                class="btn btn-primary btn-lg shrink-0"
-              >
-                <svg class="ic w-4 h-4"><use href="#i-nav" /></svg
-                ><span>Topish</span>
-              </button>
-            </div>
-            <p
-              id="mainSearchMsg"
-              class="hidden text-xs font-bold text-rose-600 mt-2"
-            ></p>
-            <div
-              id="mainSuggestionsBox"
-              class="hidden absolute left-0 right-0 top-full mt-1.5 rounded-2xl bg-white border-2 border-emerald-200 shadow-xl divide-y divide-gray-100 max-h-72 overflow-y-auto z-[1000]"
-            ></div>
-          </div>
-
-          <div
-            class="rounded-2xl bg-gradient-to-br from-emerald-50 via-white to-blue-50 border-2 border-emerald-200 p-4 shadow-md min-w-0"
-          >
-            <div
-              class="flex flex-wrap items-center justify-between gap-2 pb-2.5 mb-2.5 border-b-2 border-emerald-100"
-            >
-              <span
-                class="text-xs font-black uppercase tracking-wider text-gray-900"
-                >Joylashuv Otchyoti</span
-              >
-            </div>
-            <div
-              class="bg-white rounded-xl p-3 border border-gray-200 mb-2.5 min-w-0"
-            >
-              <span
-                id="repCountryBadge"
-                class="inline-block text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-100 mb-1"
-                >O‘zbekiston • Toshkent shahri</span
-              >
-              <div
-                id="repPlaceTitle"
-                class="text-sm font-black text-gray-900 break-words"
-              >
-                Pro Hisobchi Bosh Ofisi (Amir Temur shoh ko‘chasi, 108)
-              </div>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs min-w-0">
-              <div
-                class="bg-white rounded-xl p-2.5 border border-gray-200 min-w-0"
-              >
-                <div class="text-[10px] font-bold text-gray-400 uppercase">
-                  Koordinatalar
-                </div>
-                <div
-                  id="repCoords"
-                  class="font-mono font-bold text-blue-700 mt-0.5 truncate"
-                >
-                  41.311100, 69.279700
-                </div>
-              </div>
-              <div
-                class="bg-white rounded-xl p-2.5 border border-gray-200 min-w-0"
-              >
-                <div class="text-[10px] font-bold text-gray-400 uppercase">
-                  Ofisdan masofa
-                </div>
-                <div
-                  id="repDistance"
-                  class="font-extrabold text-gray-900 mt-0.5 truncate"
-                >
-                  0.0 km (Bosh ofis)
-                </div>
-              </div>
-              <div
-                class="bg-white rounded-xl p-2.5 border border-gray-200 min-w-0"
-              >
-                <div class="text-[10px] font-bold text-gray-400 uppercase">
-                  Holat
-                </div>
-                <div
-                  id="repLayerState"
-                  class="font-extrabold text-emerald-700 mt-0.5 truncate"
-                >
-                  Xarita
-                </div>
-              </div>
-            </div>
-            <div
-              class="mt-3 pt-3 border-t-2 border-emerald-100 flex flex-wrap items-center justify-between gap-2 text-[11px] text-gray-600 min-w-0"
-            >
-              <span id="repAddressLine" class="truncate max-w-full"
-                >Manzil: Amir Temur shoh ko‘chasi 108, Toshkent,
-                O‘zbekiston</span
-              >
-              <button
-                type="button"
-                id="copyBtn"
-                onclick="copyOtchyot()"
-                class="btn btn-soft shrink-0"
-              >
-                <svg class="ic w-4 h-4"><use href="#i-copy" /></svg
-                ><span>Otchyotni nusxalash</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="glass-card rounded-3xl p-5 sm:p-9 min-w-0">
-        <h2
-          class="text-2xl sm:text-4xl font-black text-gray-900 mb-7 text-center"
-        >
-          Biz bilan <span class="gradient-text">ishlash tartibi</span>
-        </h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-          <div class="glass-card lift p-6 rounded-2xl min-w-0">
-            <div
-              class="w-11 h-11 rounded-xl gradient-bg text-white text-lg font-black flex items-center justify-center mb-3"
-            >
-              1
-            </div>
-            <h3 class="font-extrabold text-gray-900 mb-1 text-lg">
-              Murojaat qoldiring
-            </h3>
-            <p class="text-xs sm:text-sm text-gray-600">
-              Forma yoki telefon orqali savolingizni yuboring.
-            </p>
-          </div>
-          <div class="glass-card lift p-6 rounded-2xl min-w-0">
-            <div
-              class="w-11 h-11 rounded-xl gradient-bg text-white text-lg font-black flex items-center justify-center mb-3"
-            >
-              2
-            </div>
-            <h3 class="font-extrabold text-gray-900 mb-1 text-lg">
-              Tahlil va yechim
-            </h3>
-            <p class="text-xs sm:text-sm text-gray-600">
-              Mutaxassisimiz holatingizni ko‘rib chiqib aniq reja tuzadi.
-            </p>
-          </div>
-          <div class="glass-card lift p-6 rounded-2xl min-w-0">
-            <div
-              class="w-11 h-11 rounded-xl gradient-bg text-white text-lg font-black flex items-center justify-center mb-3"
-            >
-              3
-            </div>
-            <h3 class="font-extrabold text-gray-900 mb-1 text-lg">
-              Doimiy hamkorlik
-            </h3>
-            <p class="text-xs sm:text-sm text-gray-600">
-              Hisobot va hisob-kitoblar o‘z vaqtida, xatosiz yuritiladi.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section
-        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 min-w-0"
-      >
-        <div class="glass-card lift rounded-2xl p-5 min-w-0">
-          <h3 class="font-extrabold text-gray-900 mb-1">Buxgalteriya</h3>
-          <p class="text-xs text-gray-500">
-            MChJ va YaTT buxgalteriya hisobi yuritish.
-          </p>
-        </div>
-        <div class="glass-card lift rounded-2xl p-5 min-w-0">
-          <h3 class="font-extrabold text-gray-900 mb-1">Soliq hisobotlari</h3>
-          <p class="text-xs text-gray-500">
-            QQS, foyda va aylanma hisobotlarini tayyorlash.
-          </p>
-        </div>
-        <div class="glass-card lift rounded-2xl p-5 min-w-0">
-          <h3 class="font-extrabold text-gray-900 mb-1">Hisobni tiklash</h3>
-          <p class="text-xs text-gray-500">
-            O‘tgan davr hujjatlarini tekshirish va tiklash.
-          </p>
-        </div>
-        <div class="glass-card lift rounded-2xl p-5 min-w-0">
-          <h3 class="font-extrabold text-gray-900 mb-1">Pro Tarif</h3>
-          <p class="text-xs text-gray-500">
-            Kengaytirilgan imkoniyatlar va tezkor yordam.
-          </p>
-        </div>
-      </section>
-
-      <section
-        class="rounded-3xl gradient-bg p-6 sm:p-10 text-white shadow-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 min-w-0"
-      >
-        <div>
-          <h2 class="text-2xl sm:text-4xl font-black mb-1">
-            Savolingiz bormi? Hoziroq bog‘laning!
-          </h2>
-          <p class="text-xs sm:text-sm text-white/90">
-            Xizmatlar va tariflar bilan tanishib, biznesingizni tartibga soling.
-          </p>
-        </div>
-        <div class="flex flex-wrap gap-3 shrink-0">
-          <a href="./xizmatlar.html" class="btn btn-white btn-lg">Xizmatlar</a>
-          <a href="./to'lovlar.html" class="btn btn-glass btn-lg">To'lovlar</a>
-        </div>
-      </section>
-    </main>
-
-    <!-- KATTALASHTIRILGAN XARITA -->
-    <div
-      id="mapFullscreenModal"
-      class="hidden fixed inset-0 z-[60] bg-slate-950/75 p-2 sm:p-6 items-center justify-center"
-    >
-      <div
-        class="bg-white w-full max-w-5xl rounded-3xl p-3.5 sm:p-6 shadow-2xl border-2 border-emerald-200 flex flex-col gap-3 max-h-[95vh] min-w-0"
-      >
-        <div class="flex flex-wrap items-center justify-between gap-2">
-          <div class="min-w-0">
-            <h3 class="text-lg sm:text-2xl font-black text-gray-900">
-              Kattalashtirilgan Xarita
-            </h3>
-            <p id="modalPlaceCaption" class="text-xs text-gray-500 truncate">
-              O‘zbekiston • Toshkent shahri — Pro Hisobchi Ofisi
-            </p>
-          </div>
-          <div class="flex items-center gap-2 flex-wrap">
-            <div class="seg">
-              <button
-                type="button"
-                data-mode-btn="standard"
-                onclick="setMapMode('standard')"
-                class="seg-btn active"
-              >
-                <svg class="ic w-4 h-4"><use href="#i-map" /></svg
-                ><span>Xarita</span>
-              </button>
-              <button
-                type="button"
-                data-mode-btn="satellite"
-                onclick="setMapMode('satellite')"
-                class="seg-btn"
-              >
-                <svg class="ic w-4 h-4"><use href="#i-layers" /></svg
-                ><span>Sputnik</span>
-              </button>
-            </div>
-            <button
-              type="button"
-              onclick="closeFullscreenMap()"
-              class="btn btn-rose"
-              aria-label="Yopish"
-            >
-              <svg class="ic w-5 h-5"><use href="#i-x" /></svg>
-            </button>
-          </div>
-        </div>
-        <div
-          id="modalMapSlot"
-          class="map-frame-box w-full h-[50vh] sm:h-[58vh] rounded-2xl border-2 border-emerald-300 bg-[#e5e3df]"
-        ></div>
-        <div class="relative min-w-0">
-          <div class="flex flex-col sm:flex-row gap-2">
-            <div class="relative flex-1 min-w-0">
-              <input
-                id="modalMapSearchInput"
-                type="text"
-                autocomplete="off"
-                oninput="handleLiveSuggestions(this.value, 'modal')"
-                onkeydown="
-                  if (event.key === 'Enter') {
-                    event.preventDefault();
-                    searchExactLocation('modal');
-                  }
-                "
-                placeholder="Shahar, tuman, joy yoki davlat yozing..."
-                class="field"
-                style="padding-left: 40px"
-              />
-              <svg
-                class="ic w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
-              >
-                <use href="#i-search" />
-              </svg>
-            </div>
-            <button
-              type="button"
-              onclick="searchExactLocation('modal')"
-              class="btn btn-primary btn-lg shrink-0"
-            >
-              <svg class="ic w-4 h-4"><use href="#i-nav" /></svg
-              ><span>Topish</span>
-            </button>
-          </div>
-          <p
-            id="modalSearchMsg"
-            class="hidden text-xs font-bold text-rose-600 mt-2"
-          ></p>
-          <div
-            id="modalSuggestionsBox"
-            class="hidden absolute left-0 right-0 bottom-full mb-1.5 rounded-2xl bg-white border-2 border-emerald-200 shadow-xl divide-y divide-gray-100 max-h-44 overflow-y-auto z-[1000]"
-          ></div>
-        </div>
-      </div>
-    </div>
-
-    <footer
-      class="w-full overflow-hidden border-t border-gray-200 bg-white py-10 sm:py-12 lg:py-[60px]"
-    >
-      <div class="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-[30px]">
-        <a
-          href="./index.html"
-          class="mb-4 flex items-center justify-start gap-3"
-        >
-          <img
-            src="./images/image.png"
-            width="45"
-            height="45"
-            loading="lazy"
-            decoding="async"
-            class="h-11 w-11 shrink-0 rounded-xl border border-green-100 object-cover shadow-md"
-            alt="Pro Hisobchi Logo"
-          />
-          <div class="flex min-w-0 flex-col">
-            <span
-              class="w-fit rounded bg-emerald-100 px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-widest text-emerald-700"
-              >PRO</span
-            >
-            <h2
-              class="text-base font-black tracking-tight text-gray-900 sm:text-lg lg:text-xl"
-            >
-              Pro Hisobchi
-            </h2>
-          </div>
-        </a>
-        <div class="border-t border-gray-200 pt-5 sm:pt-[25px]">
-          <p class="text-left text-xs leading-relaxed text-gray-500 sm:text-sm">
-            © 2026 Pro Hisobchi. Barcha huquqlar himoyalangan.
-          </p>
-        </div>
-      </div>
-    </footer>
+    <div id="toast"></div>
 
     <script>
-      // ---------- Mobil menyu ----------
-      (function () {
-        var d = document.getElementById("drawer-navigation"),
-          b = document.getElementById("drawer-backdrop");
-        function set(o) {
-          d.classList.toggle("open", o);
-          b.classList.toggle("open", o);
-        }
-        document
-          .getElementById("drawerOpen")
-          .addEventListener("click", function () {
-            set(true);
-          });
-        document
-          .getElementById("drawerClose")
-          .addEventListener("click", function () {
-            set(false);
-          });
-        b.addEventListener("click", function () {
-          set(false);
-        });
-      })();
-
-      // ---------- Jotform chat ----------
-      window.addEventListener("load", function () {
-        var go = function () {
-          var s = document.createElement("script");
-          s.src =
-            "https://cdn.jotfor.ms/agent/embedjs/01a17e2530e870008568395045f834f7cf64/embed.js";
-          s.async = true;
-          document.body.appendChild(s);
-        };
-        if ("requestIdleCallback" in window)
-          requestIdleCallback(go, { timeout: 3000 });
-        else setTimeout(go, 1500);
-      });
-
-      function esc(s) {
-        return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
-          return {
-            "&": "&amp;",
-            "<": "&lt;",
-            ">": "&gt;",
-            '"': "&quot;",
-            "'": "&#39;",
-          }[c];
+      // ---------- Ikonkalar ----------
+      const P = {
+        flame:
+          "M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.4-.5-2-1-3-1.1-2.1-.2-4 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.2.4-2.4 1-3 0 1.4.9 2.5 2.5 2.5z",
+        bolt: "M13 2 3 14h9l-1 8 10-12h-9z",
+        drop: "M12 2.7s7 7.2 7 12a7 7 0 0 1-14 0c0-4.8 7-12 7-12z",
+        trash: "M3 6h18M8 6V4h8v2m-9 0 1 14h8l1-14M10 11v6M14 11v6",
+        wifi: "M2 8.8a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M12 19.5h.01",
+        phone:
+          "M7 2h10a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zM11 18h2",
+        bell: "M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10 21a2 2 0 0 0 4 0",
+        home: "M3 11l9-8 9 8M5 10v10h14V10M10 20v-6h4v6",
+        shield: "M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z",
+        wallet:
+          "M3 7h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM3 7l2-3h12M16 14h2",
+        card: "M2 5h20v14H2zM2 10h20",
+        check: "M5 13l4 4L19 7",
+        clock: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v5l3 2",
+        repeat:
+          "M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3",
+        doc: "M6 2h9l5 5v15H6zM14 2v6h6M9 13h8M9 17h8",
+        lock: "M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4",
+        plus: "M12 5v14M5 12h14",
+        headset: "M4 14v-2a8 8 0 0 1 16 0v2M4 14h3v5H4zM17 14h3v5h-3z",
+        alert: "M12 3 2 21h20zM12 10v5M12 18h.01",
+      };
+      const ic = (n) =>
+        `<svg class="ico" viewBox="0 0 24 24"><path d="${P[n]}"/></svg>`;
+      function paintIcons() {
+        document.querySelectorAll("svg[data-i]").forEach((s) => {
+          s.innerHTML = `<path d="${P[s.dataset.i]}"/>`;
+          s.removeAttribute("data-i");
         });
       }
 
-      // ---------- SPUTNIK MANBASI ----------
-      // Bo'sh qoldirsangiz: Esri World Imagery (kalitsiz, lekin ba'zi joylarda eski).
-      // MapTiler kalitini (bepul, karta kerak emas) shu yerga qo'ysangiz, yangiroq va aniqroq sputnik ishlaydi.
-      var MAPTILER_KEY = "";
-
-      // GOOGLE kaliti (Map Tiles API): qo'ysangiz, xarita VA sputnik Google'ning o'z tayllariga o'tadi.
-      // Hamma zoomda bir xil, eng yangi rasm. Kalit: console.cloud.google.com -> "Map Tiles API" ni yoqing
-      // va kalitni "HTTP referrer" bilan faqat o'z saytingizga cheklang.
-      var GOOGLE_KEY = "";
-      var googleActive = false;
-
-      // Yuklanmay qolgan tayllarni 3 martagacha qayta urinadi
-      function retryTiles(layer) {
-        layer.on("tileerror", function (e) {
-          var t = e.tile;
-          if (!t || (t._retry || 0) >= 3) return;
-          t._retry = (t._retry || 0) + 1;
-          if (!t._base)
-            t._base = t.src.replace(/([?&])_r=\d+/, "").replace(/[?&]$/, "");
-          setTimeout(function () {
-            if (!t.parentNode) return;
-            t.src =
-              t._base +
-              (t._base.indexOf("?") > -1 ? "&" : "?") +
-              "_r=" +
-              t._retry;
-          }, 500 * t._retry);
-        });
-      }
-
-      // Qotib qolmaslik uchun vaqt chegarali so'rov
-      async function fetchJson(url, ms) {
-        var ctl = new AbortController(),
-          id = setTimeout(function () {
-            ctl.abort();
-          }, ms || 6000);
-        try {
-          var r = await fetch(url, {
-            signal: ctl.signal,
-            headers: { Accept: "application/json" },
-          });
-          if (!r.ok) throw new Error("HTTP " + r.status);
-          return await r.json();
-        } finally {
-          clearTimeout(id);
-        }
-      }
-
-      // Birinchi bo'sh bo'lmagan javobni qaytaradi (qaysi biri tez bo'lsa)
-      function firstNonEmpty(promises) {
-        return new Promise(function (resolve) {
-          var left = promises.length,
-            done = false;
-          function miss() {
-            if (!done && --left === 0) resolve([]);
-          }
-          promises.forEach(function (p) {
-            p.then(function (v) {
-              if (done) return;
-              if (v && v.length) {
-                done = true;
-                resolve(v);
-              } else miss();
-            }, miss);
-          });
-        });
-      }
-
-      // Apostrof va yozilish variantlari bilan qayta qidirish
-      function queryVariants(q) {
-        var a = q.replace(/[‘’ʻʼ`´]/g, "'"),
-          b = a.replace(/'/g, ""),
-          out = [q];
-        [a, b, q + ", Uzbekistan"].forEach(function (v) {
-          if (out.indexOf(v) < 0) out.push(v);
-        });
-        return out;
-      }
-
-      // ---------- Global holat ----------
-      var map,
-        marker,
-        standardTiles = null,
-        satelliteGroup = null,
-        activeMode = "standard";
-      var officeLat = 41.3111,
-        officeLng = 69.2797,
-        worldCenter = [22, 18],
-        worldZoom = 2;
-      var searchTimer = null,
-        reqId = 0;
-      var meMarker = null;
-
-      // Sputnik: "Map data not yet available" tayllari uchun zoom chegarasi
-      var satLayers = [],
-        satCap = 18,
-        satCapCenter = null;
-
-      // ---------- Xaritani ishga tushirish (Leaflet tayyor bo'lgach) ----------
-      document.addEventListener("DOMContentLoaded", function () {
-        map = L.map("leafletMap", {
-          worldCopyJump: true,
-          minZoom: 2,
-          maxZoom: 21,
-          zoomControl: false,
-          zoomSnap: 1,
-          zoomDelta: 1,
-          wheelPxPerZoomLevel: 80,
-          wheelDebounceTime: 30,
-          inertia: true,
-        }).setView(worldCenter, worldZoom);
-
-        // Google Maps kabi: zoom tugmalari pastki o'ngda, masshtab pastki chapda
-        L.control.zoom({ position: "bottomright" }).addTo(map);
-        L.control.scale({ position: "bottomleft", imperial: false }).addTo(map);
-
-        // "Mening joylashuvim" tugmasi
-        var LocateCtl = L.Control.extend({
-          options: { position: "bottomright" },
-          onAdd: function () {
-            var b = L.DomUtil.create("button", "gm-locate");
-            b.type = "button";
-            b.title = "Mening joylashuvim";
-            b.setAttribute("aria-label", "Mening joylashuvim");
-            b.innerHTML =
-              '<svg class="ic" style="width:22px;height:22px"><use href="#i-locate"/></svg>';
-            L.DomEvent.disableClickPropagation(b);
-            L.DomEvent.on(b, "click", locateMe);
-            return b;
-          },
-        });
-        map.addControl(new LocateCtl());
-
-        // ---------- "Map data not yet available" tayllarini aniqlash ----------
-        function isMissingTile(img) {
-          try {
-            var c = document.createElement("canvas");
-            c.width = c.height = 16;
-            var x = c.getContext("2d", { willReadFrequently: true });
-            x.drawImage(img, 0, 0, 16, 16);
-            var d = x.getImageData(0, 0, 16, 16).data,
-              gray = 0;
-            for (var i = 0; i < d.length; i += 4) {
-              var r = d[i],
-                g = d[i + 1],
-                b = d[i + 2];
-              if (
-                Math.abs(r - g) < 5 &&
-                Math.abs(g - b) < 5 &&
-                r > 195 &&
-                r < 213
-              )
-                gray++;
-            }
-            return gray > 200;
-          } catch (e) {
-            return false;
-          }
-        }
-
-        // Rasm yo'q joyda bir pog'ona past zoomdagi tayl kattalashtirib ko'rsatiladi
-        var capLayers = [];
-        var satImagery = null;
-
-        // Rasm haqiqatan mavjud bo'lgan zoomdan ortiq yaqinlashtirishga yo'l qo'ymaydi (xira bo'lmasin)
-        function applyMaxZoom() {
-          var m = 19;
-          if (googleActive) m = 21;
-          else {
-            var l = activeMode === "satellite" ? satImagery : standardTiles;
-            if (l && l._cap) m = l._cap;
-          }
-          if (map.getMaxZoom() !== m) map.setMaxZoom(m);
-        }
-        function makeCapLayer(url, opts, startCap) {
-          var Cls = L.TileLayer.extend({
-            createTile: function (coords, done) {
-              var self = this;
-              return L.TileLayer.prototype.createTile.call(
-                this,
-                coords,
-                function (err, tile) {
-                  if (
-                    !err &&
-                    coords.z > 3 &&
-                    coords.z <= self._cap &&
-                    isMissingTile(tile)
-                  ) {
-                    self._cap = coords.z - 1;
-                    self._capCenter = map.getCenter();
-                    self.options.maxNativeZoom = self._cap;
-                    (self._followers || []).forEach(function (f) {
-                      f.options.maxNativeZoom = Math.min(
-                        f._baseNative || 99,
-                        self._cap,
-                      );
-                      f.redraw();
-                    });
-                    setTimeout(function () {
-                      self.redraw();
-                      applyMaxZoom();
-                    }, 0);
-                  }
-                  done(err, tile);
-                },
-              );
-            },
-          });
-          var layer = new Cls(
-            url,
-            Object.assign({}, opts, {
-              maxNativeZoom: startCap,
-              crossOrigin: true,
-              detectRetina: false,
-              keepBuffer: 2,
-              updateInterval: 100,
-              updateWhenIdle: false,
-            }),
-          );
-          layer._cap = layer._startCap = layer.options.maxNativeZoom;
-          layer._followers = [];
-          retryTiles(layer);
-          capLayers.push(layer);
-          return layer;
-        }
-        window.resetSatCap = function (force) {
-          capLayers.forEach(function (l) {
-            if (l._cap === l._startCap) return;
-            if (
-              !force &&
-              l._capCenter &&
-              map.getCenter().distanceTo(l._capCenter) < 40000
-            )
-              return;
-            l._cap = l._startCap;
-            l._capCenter = null;
-            l.options.maxNativeZoom = l._startCap;
-            l._followers.forEach(function (f) {
-              f.options.maxNativeZoom = f._baseNative || l._startCap;
-              f.redraw();
-            });
-            l.redraw();
-          });
-          applyMaxZoom();
-        };
-        map.on("moveend", function () {
-          window.resetSatCap(false);
-        });
-
-        // ---------- Oddiy xarita: Esri ko'cha xaritasi (asl holat), zaxira: OSM ----------
-        function loadStandard(i) {
-          if (standardTiles && map.hasLayer(standardTiles))
-            map.removeLayer(standardTiles);
-          var loaded = 0,
-            errors = 0;
-          if (i === 0) {
-            standardTiles = makeCapLayer(
-              "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
-              { maxZoom: 20, attribution: "&copy; Esri" },
-              19,
-            );
-          } else {
-            standardTiles = L.tileLayer(
-              "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-              {
-                maxZoom: 20,
-                maxNativeZoom: 19,
-                detectRetina: false,
-                keepBuffer: 2,
-                updateInterval: 100,
-                updateWhenIdle: false,
-                attribution: "&copy; OpenStreetMap",
-              },
-            );
-          }
-          retryTiles(standardTiles);
-          standardTiles.on("tileload", function () {
-            loaded++;
-          });
-          standardTiles.on("tileerror", function () {
-            errors++;
-            if (!loaded && errors >= 4 && i === 0 && !googleActive)
-              loadStandard(1);
-          });
-          if (activeMode === "standard") standardTiles.addTo(map);
-        }
-        loadStandard(0);
-        applyMaxZoom();
-
-        // ---------- Sputnik: Esri rasmlari + nomlar ----------
-        function makeSatellite() {
-          if (MAPTILER_KEY) {
-            satLayers = [];
-            satelliteGroup = L.layerGroup([
-              L.tileLayer(
-                "https://api.maptiler.com/maps/hybrid/256/{z}/{x}/{y}.jpg?key=" +
-                  encodeURIComponent(MAPTILER_KEY),
-                {
-                  maxZoom: 20,
-                  maxNativeZoom: 19,
-                  detectRetina: false,
-                  keepBuffer: 2,
-                  updateInterval: 100,
-                  updateWhenIdle: false,
-                  attribution: "&copy; MapTiler &copy; OpenStreetMap",
-                },
-              ),
-            ]);
-            return;
-          }
-          var imagery = makeCapLayer(
-            "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-            { maxZoom: 21, attribution: "&copy; Esri Sputnik" },
-            20,
-          );
-          var labels = L.tileLayer(
-            "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
-            {
-              maxZoom: 21,
-              maxNativeZoom: 19,
-              detectRetina: false,
-              keepBuffer: 2,
-              updateInterval: 100,
-              updateWhenIdle: false,
-            },
-          );
-          retryTiles(labels);
-          labels._baseNative = 19;
-          satImagery = imagery;
-          imagery._followers.push(labels);
-          satelliteGroup = L.layerGroup([imagery, labels]);
-        }
-
-        window.setMapMode = function (mode) {
-          activeMode = mode;
-          if (mode === "satellite") {
-            if (!satelliteGroup) makeSatellite();
-            if (standardTiles && map.hasLayer(standardTiles))
-              map.removeLayer(standardTiles);
-            if (!map.hasLayer(satelliteGroup)) satelliteGroup.addTo(map);
-          } else {
-            if (satelliteGroup && map.hasLayer(satelliteGroup))
-              map.removeLayer(satelliteGroup);
-            if (standardTiles && !map.hasLayer(standardTiles))
-              standardTiles.addTo(map);
-          }
-          document.querySelectorAll("[data-mode-btn]").forEach(function (b) {
-            b.classList.toggle(
-              "active",
-              b.getAttribute("data-mode-btn") === mode,
-            );
-          });
-          var text = mode === "satellite" ? "Sputnik" : "Xarita";
-          var badge = document.getElementById("mapStatusBadge");
-          badge.textContent = text;
-          badge.className =
-            mode === "satellite" ? "badge badge-blue" : "badge badge-green";
-          document.getElementById("repLayerState").textContent = text;
-          applyMaxZoom();
-        };
-
-        // ---------- Google Map Tiles API (kalit qo'yilsa) ----------
-        async function googleSession(mapType, layerTypes) {
-          var body = { mapType: mapType, language: "en-US", region: "US" };
-          if (layerTypes) body.layerTypes = layerTypes;
-          var r = await fetch(
-            "https://tile.googleapis.com/v1/createSession?key=" +
-              encodeURIComponent(GOOGLE_KEY),
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(body),
-            },
-          );
-          if (!r.ok) throw new Error("Google " + r.status);
-          return (await r.json()).session;
-        }
-        async function initGoogle() {
-          if (!GOOGLE_KEY) return;
-          try {
-            var ss = await Promise.all([
-              googleSession("roadmap"),
-              googleSession("satellite", ["layerRoadmap"]),
-            ]);
-            var mk = function (sess) {
-              return L.tileLayer(
-                "https://tile.googleapis.com/v1/2dtiles/{z}/{x}/{y}?session=" +
-                  sess +
-                  "&key=" +
-                  encodeURIComponent(GOOGLE_KEY),
-                {
-                  maxZoom: 22,
-                  maxNativeZoom: 20,
-                  detectRetina: true,
-                  keepBuffer: 2,
-                  updateInterval: 100,
-                  updateWhenIdle: false,
-                  attribution: "Map data &copy; Google",
-                },
-              );
-            };
-            if (standardTiles && map.hasLayer(standardTiles))
-              map.removeLayer(standardTiles);
-            if (satelliteGroup && map.hasLayer(satelliteGroup))
-              map.removeLayer(satelliteGroup);
-            capLayers.length = 0; // Google'da kulrang tayl yo'q, kerak emas
-            googleActive = true;
-            standardTiles = mk(ss[0]);
-            retryTiles(standardTiles);
-            var gSat = mk(ss[1]);
-            retryTiles(gSat);
-            satelliteGroup = L.layerGroup([gSat]);
-            window.setMapMode(activeMode);
-          } catch (e) {
-            console.warn("Google tayllari ishlamadi, zaxira manba qoldi:", e);
-          }
-        }
-        initGoogle();
-
-        // ---------- Google Maps uslubidagi qizil pin ----------
-        var pinIcon = L.divIcon({
-          className: "gm-pin",
-          html:
-            '<svg width="34" height="44" viewBox="0 0 24 32" xmlns="http://www.w3.org/2000/svg">' +
-            '<path d="M12 .5C5.7.5.5 5.7.5 12c0 8.6 11.5 19.5 11.5 19.5S23.5 20.6 23.5 12C23.5 5.7 18.3.5 12 .5z" fill="#EA4335" stroke="#B31412"/>' +
-            '<circle cx="12" cy="12" r="4.6" fill="#7B1713"/></svg>',
-          iconSize: [34, 44],
-          iconAnchor: [17, 44],
-          popupAnchor: [0, -40],
-        });
-        window.__pinIcon = pinIcon;
-
-        map.on("click movestart", hideSuggestions);
-        marker = L.marker([officeLat, officeLng], { icon: pinIcon })
-          .addTo(map)
-          .bindPopup(
-            "<div style='font-size:11px;font-weight:700;color:#1d4ed8'>O‘zbekiston • Toshkent shahri</div><b>Pro Hisobchi Ofisi</b>",
-          );
-
-        fsModal.addEventListener("click", function (e) {
-          if (e.target === fsModal) closeFullscreenMap();
-        });
-      });
-
-      // ---------- Mening joylashuvim ----------
-      function locateMe() {
-        if (!navigator.geolocation) {
-          alert("Brauzeringiz joylashuvni qo‘llab-quvvatlamaydi.");
-          return;
-        }
-        navigator.geolocation.getCurrentPosition(
-          function (pos) {
-            var lat = pos.coords.latitude,
-              lon = pos.coords.longitude;
-            if (window.resetSatCap) resetSatCap(true);
-            if (meMarker) map.removeLayer(meMarker);
-            meMarker = L.marker([lat, lon], {
-              icon: L.divIcon({
-                className: "",
-                html: '<div class="gm-me"></div>',
-                iconSize: [16, 16],
-                iconAnchor: [8, 8],
-              }),
-            }).addTo(map);
-            map.flyTo([lat, lon], 16, { duration: 0.75 });
-            updateOtchyot({
-              name: "Sizning joylashuvingiz",
-              countryBadge: "Joriy joylashuv",
-              fullAddress: lat.toFixed(5) + ", " + lon.toFixed(5),
-              lat: lat,
-              lon: lon,
-            });
-          },
-          function () {
-            alert("Joylashuvni aniqlab bo‘lmadi. Brauzerda ruxsat bering.");
-          },
-          { enableHighAccuracy: true, timeout: 10000 },
-        );
-      }
-
-      function resetToGlobalView() {
-        if (window.resetSatCap) resetSatCap(true);
-        map.flyTo(worldCenter, worldZoom, { duration: 0.7 });
-      }
-
-      function calcDistanceKm(lat1, lon1, lat2, lon2) {
-        var R = 6371,
-          dLat = ((lat2 - lat1) * Math.PI) / 180,
-          dLon = ((lon2 - lon1) * Math.PI) / 180;
-        var a =
-          Math.sin(dLat / 2) ** 2 +
-          Math.cos((lat1 * Math.PI) / 180) *
-            Math.cos((lat2 * Math.PI) / 180) *
-            Math.sin(dLon / 2) ** 2;
-        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      }
-
-      function updateOtchyot(place) {
-        var dist = calcDistanceKm(officeLat, officeLng, place.lat, place.lon);
-        document.getElementById("repCountryBadge").textContent =
-          place.countryBadge;
-        document.getElementById("repPlaceTitle").textContent = place.name;
-        document.getElementById("repCoords").textContent =
-          Number(place.lat).toFixed(6) + ", " + Number(place.lon).toFixed(6);
-        document.getElementById("repDistance").textContent =
-          dist < 0.05
-            ? "0.0 km (Bosh ofis)"
-            : dist.toFixed(1) + " km (Ofisdan)";
-        document.getElementById("repAddressLine").textContent =
-          "Manzil: " + place.fullAddress;
-        document.getElementById("modalPlaceCaption").textContent =
-          place.countryBadge + " — " + place.name;
-      }
-
-      // Tezkor ro'yxat (1 harf yozilganda yoki internet bo'lmaganda)
-      var quickPlaces = [
+      // ---------- Xizmatlar ----------
+      const D = 864e5;
+      const SV = [
         {
-          name: "Toshkent shahri",
-          countryBadge: "O‘zbekiston • Toshkent shahri",
-          fullAddress: "Toshkent shahri, O‘zbekiston",
-          lat: 41.2995,
-          lon: 69.2401,
-          type: "Shahar",
+          id: "gaz",
+          g: "core",
+          n: "Gaz",
+          d: "Tabiiy gaz",
+          i: "flame",
+          c: "#f97316",
+          bg: "rgba(249,115,22,.18)",
+          a: 85000,
+          days: 90,
+          lbl: "3 oydan keyin",
+          first: 20e3,
         },
         {
-          name: "Samarqand shahri",
-          countryBadge: "O‘zbekiston • Samarqand viloyati",
-          fullAddress: "Samarqand shahri, Samarqand viloyati, O‘zbekiston",
-          lat: 39.6542,
-          lon: 66.9597,
-          type: "Shahar",
+          id: "svet",
+          g: "core",
+          n: "Svet",
+          d: "Elektr energiyasi",
+          i: "bolt",
+          c: "#facc15",
+          bg: "rgba(250,204,21,.16)",
+          a: 120000,
+          days: 90,
+          lbl: "3 oydan keyin",
+          first: 0,
         },
         {
-          name: "Buxoro shahri",
-          countryBadge: "O‘zbekiston • Buxoro viloyati",
-          fullAddress: "Buxoro shahri, Buxoro viloyati, O‘zbekiston",
-          lat: 39.7681,
-          lon: 64.4556,
-          type: "Shahar",
+          id: "suv",
+          g: "core",
+          n: "Suv",
+          d: "Ichimlik suvi",
+          i: "drop",
+          c: "#38bdf8",
+          bg: "rgba(56,189,248,.16)",
+          a: 45000,
+          days: 90,
+          lbl: "3 oydan keyin",
+          first: 5 * D,
         },
         {
-          name: "Chorvoq",
-          countryBadge: "O‘zbekiston • Toshkent viloyati",
-          fullAddress:
-            "Chorvoq, Bo‘stonliq tumani, Toshkent viloyati, O‘zbekiston",
-          lat: 41.6289,
-          lon: 69.9744,
-          type: "Hudud",
+          id: "axlat",
+          g: "core",
+          n: "Axlat",
+          d: "Maishiy chiqindi",
+          i: "trash",
+          c: "#4ade80",
+          bg: "rgba(74,222,128,.15)",
+          a: 25000,
+          days: 90,
+          lbl: "3 oydan keyin",
+          first: 12 * D,
         },
         {
-          name: "Bektemir tumani",
-          countryBadge: "O‘zbekiston • Toshkent shahri",
-          fullAddress: "Bektemir tumani, Toshkent shahri, O‘zbekiston",
-          lat: 41.2116,
-          lon: 69.3344,
-          type: "Tuman",
+          id: "wifi",
+          g: "extra",
+          n: "Internet va Wi-Fi",
+          d: "Uy interneti",
+          i: "wifi",
+          c: "#a78bfa",
+          bg: "rgba(167,139,250,.17)",
+          a: 110000,
+          days: 30,
+          lbl: "1 oydan keyin",
+          first: 3 * D,
         },
         {
-          name: "Berlin",
-          countryBadge: "Germaniya",
-          fullAddress: "Berlin, Germaniya",
-          lat: 52.52,
-          lon: 13.405,
-          type: "Shahar",
+          id: "mobil",
+          g: "extra",
+          n: "Mobil aloqa",
+          d: "Raqamni to'ldirish",
+          i: "phone",
+          c: "#f472b6",
+          bg: "rgba(244,114,182,.16)",
+          a: 50000,
+          days: 30,
+          lbl: "1 oydan keyin",
+          first: 8 * D,
         },
         {
-          name: "Braziliya",
-          countryBadge: "Braziliya • Janubiy Amerika",
-          fullAddress: "Braziliya",
-          lat: -14.235,
-          lon: -51.9253,
-          type: "Davlat",
-          bounds: [
-            [-33.75, -73.99],
-            [5.27, -34.79],
-          ],
+          id: "domofon",
+          g: "extra",
+          n: "Domofon",
+          d: "Kirish nazorati",
+          i: "bell",
+          c: "#2dd4bf",
+          bg: "rgba(45,212,191,.16)",
+          a: 15000,
+          days: 30,
+          lbl: "1 oydan keyin",
+          first: 15 * D,
+        },
+        {
+          id: "osgo",
+          g: "extra",
+          n: "Xususiy mulk (OSGO/ShIR)",
+          d: "Sug'urta badali",
+          i: "home",
+          c: "#fb7185",
+          bg: "rgba(251,113,133,.16)",
+          a: 200000,
+          days: 90,
+          lbl: "3 oydan keyin",
+          first: 20 * D,
         },
       ];
 
-      function hideSuggestions() {
-        clearTimeout(searchTimer);
-        reqId++;
-        document.getElementById("mainSuggestionsBox").classList.add("hidden");
-        document.getElementById("modalSuggestionsBox").classList.add("hidden");
-      }
-
-      function goToPlace(place) {
-        if (window.resetSatCap) resetSatCap(true);
-        var far = map.getCenter().distanceTo([place.lat, place.lon]) > 1500000;
-        if (place.bounds) {
-          if (far)
-            map.fitBounds(place.bounds, {
-              maxZoom: 16,
-              padding: [30, 30],
-              animate: false,
-            });
-          else
-            map.flyToBounds(place.bounds, {
-              maxZoom: 16,
-              padding: [30, 30],
-              duration: 0.6,
-            });
-        } else {
-          var z = place.type === "Davlat" ? 4 : 15;
-          if (far) map.setView([place.lat, place.lon], z, { animate: false });
-          else map.flyTo([place.lat, place.lon], z, { duration: 0.6 });
-        }
-        var slot = document.getElementById("mapHomeSlot");
-        if (slot && slot.contains(document.getElementById("leafletMap"))) {
-          var rc = slot.getBoundingClientRect();
-          if (rc.top < 90 || rc.bottom > window.innerHeight)
-            slot.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
-        marker
-          .setLatLng([place.lat, place.lon])
-          .bindPopup(
-            "<div style='font-size:11px;font-weight:700;color:#1d4ed8'>" +
-              esc(place.countryBadge) +
-              "</div><b>" +
-              esc(place.name) +
-              "</b>",
-          )
-          .openPopup();
-        updateOtchyot(place);
-        hideSuggestions();
-        document.getElementById("mainSearchMsg").classList.add("hidden");
-        document.getElementById("modalSearchMsg").classList.add("hidden");
-      }
-
-      function buildBadge(addr) {
-        var country = addr.country || "",
-          region = addr.state || addr.region || addr.county || addr.city || "";
-        if (country && region && country.toLowerCase() !== region.toLowerCase())
-          return country + " • " + region;
-        return country || region || "Dunyo";
-      }
-
-      function renderSuggestionList(items, box) {
-        if (!items || !items.length) {
-          box.classList.add("hidden");
-          return;
-        }
-        box.innerHTML = items
-          .map(function (item, i) {
-            return (
-              '<button type="button" data-i="' +
-              i +
-              '" class="w-full text-left px-3.5 py-2.5 hover:bg-emerald-50 flex flex-col gap-1 cursor-pointer min-w-0">' +
-              '<div class="flex items-center justify-between gap-2">' +
-              '<span class="inline-block text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-100 truncate">' +
-              esc(item.countryBadge) +
-              "</span>" +
-              '<span class="text-[10px] font-bold text-gray-400 shrink-0">' +
-              esc(item.type) +
-              "</span></div>" +
-              '<div class="text-xs sm:text-sm font-black text-gray-900 truncate">' +
-              esc(item.name) +
-              "</div>" +
-              '<div class="text-[11px] text-gray-500 truncate">' +
-              esc(item.fullAddress) +
-              "</div></button>"
-            );
-          })
-          .join("");
-        box.querySelectorAll("button").forEach(function (btn, idx) {
-          btn.addEventListener("click", function () {
-            var chosen = items[idx];
-            document.getElementById("mapSearchInput").value = chosen.name;
-            document.getElementById("modalMapSearchInput").value = chosen.name;
-            goToPlace(chosen);
-          });
-        });
-        box.classList.remove("hidden");
-      }
-
-      // ---------- QIDIRUV: Photon (yozganda) + Nominatim (Enter) ----------
-      function localMatches(q) {
-        q = q.toLowerCase();
-        return quickPlaces.filter(function (p) {
-          return (
-            p.name.toLowerCase().includes(q) ||
-            p.fullAddress.toLowerCase().includes(q)
-          );
-        });
-      }
-
-      function mapPhoton(f) {
-        var p = f.properties || {},
-          c = f.geometry.coordinates;
-        var parts = [
-          p.name,
-          p.housenumber,
-          p.street,
-          p.district,
-          p.city,
-          p.state,
-          p.country,
-        ]
-          .filter(Boolean)
-          .filter(function (v, i, a) {
-            return a.indexOf(v) === i;
-          });
-        var e = p.extent; // [minLon, maxLat, maxLon, minLat]
-        var isCountry = p.osm_key === "place" && p.osm_value === "country";
-        return {
-          name: p.name || p.street || p.city || "Nomsiz joy",
-          countryBadge: buildBadge({
-            country: p.country,
-            state: p.state || p.city,
-          }),
-          fullAddress: parts.join(", "),
-          lat: c[1],
-          lon: c[0],
-          type: isCountry
-            ? "Davlat"
-            : p.osm_value
-              ? p.osm_value.replace(/_/g, " ")
-              : "Manzil",
-          bounds: e
-            ? [
-                [e[3], e[0]],
-                [e[1], e[2]],
-              ]
-            : null,
-        };
-      }
-
-      function mapNominatim(d) {
-        var b = d.boundingbox; // [south, north, west, east]
-        return {
-          name: d.display_name.split(",")[0],
-          countryBadge: buildBadge(d.address || {}),
-          fullAddress: d.display_name,
-          lat: parseFloat(d.lat),
-          lon: parseFloat(d.lon),
-          type: d.type ? d.type.replace(/_/g, " ") : "Manzil",
-          bounds: b
-            ? [
-                [parseFloat(b[0]), parseFloat(b[2])],
-                [parseFloat(b[1]), parseFloat(b[3])],
-              ]
-            : null,
-        };
-      }
-
-      async function photon(q, limit) {
-        var j = await fetchJson(
-          "https://photon.komoot.io/api/?limit=" +
-            limit +
-            "&lat=41.31&lon=69.28&q=" +
-            encodeURIComponent(q),
-          6000,
-        );
-        return (j.features || []).map(mapPhoton);
-      }
-
-      async function nominatim(q, limit) {
-        var data = await fetchJson(
-          "https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&accept-language=uz,en&limit=" +
-            limit +
-            "&q=" +
-            encodeURIComponent(q),
-          7000,
-        );
-        return (data || []).map(mapNominatim);
-      }
-
-      // Ikkala manbani birlashtiradi, takrorlarini olib tashlaydi
-      async function searchPlaces(q, limit) {
-        var rs = await Promise.allSettled([
-          nominatim(q, limit),
-          photon(q, limit),
-        ]);
-        var all = [];
-        rs.forEach(function (r) {
-          if (r.status === "fulfilled") all = all.concat(r.value);
-        });
-        var seen = {};
-        return all.filter(function (p) {
-          var k =
-            p.name.toLowerCase() +
-            "|" +
-            p.lat.toFixed(2) +
-            "," +
-            p.lon.toFixed(2);
-          if (seen[k]) return false;
-          seen[k] = 1;
-          return true;
-        });
-      }
-
-      async function findPlaces(q, limit) {
-        var vs = queryVariants(q);
-        for (var i = 0; i < vs.length; i++) {
-          var r = await searchPlaces(vs[i], limit);
-          if (r.length) return r;
-        }
-        return [];
-      }
-
-      function handleLiveSuggestions(raw, source) {
-        var q = raw.trim();
-        var box = document.getElementById(
-          source === "modal" ? "modalSuggestionsBox" : "mainSuggestionsBox",
-        );
-        if (!q) {
-          hideSuggestions();
-          return;
-        }
-
-        clearTimeout(searchTimer);
-        var my = ++reqId;
-
-        if (q.length < 2) {
-          renderSuggestionList(localMatches(q), box);
-          return;
-        }
-
-        searchTimer = setTimeout(async function () {
-          var info = function (t) {
-            box.innerHTML =
-              '<div class="px-3.5 py-2.5 text-xs font-bold text-gray-500">' +
-              t +
-              "</div>";
-            box.classList.remove("hidden");
-          };
-          try {
-            var lm = localMatches(q);
-            if (lm.length) renderSuggestionList(lm, box);
-            else info("Qidirilmoqda...");
-            var list = await firstNonEmpty([photon(q, 8), nominatim(q, 8)]);
-            if (my !== reqId) return;
-            if (!list.length) list = await findPlaces(q, 8);
-            if (my !== reqId) return;
-            if (!list.length) list = lm;
-            if (list.length) renderSuggestionList(list, box);
-            else info("Hech narsa topilmadi. Boshqacha yozib ko‘ring.");
-          } catch (_) {
-            if (my === reqId) renderSuggestionList(localMatches(q), box);
-          }
-        }, 300);
-      }
-
-      async function searchExactLocation(source) {
-        var inp = document.getElementById(
-          source === "modal" ? "modalMapSearchInput" : "mapSearchInput",
-        );
-        var msg = document.getElementById(
-          source === "modal" ? "modalSearchMsg" : "mainSearchMsg",
-        );
-        var q = inp.value.trim();
-        msg.classList.add("hidden");
-        hideSuggestions();
-        if (!q) return;
-
+      // ---------- Holat ----------
+      const KEY = "ph_pay_v1";
+      let S;
+      function init() {
         try {
-          var list = await findPlaces(q, 5);
-          if (!list.length) list = localMatches(q);
-          if (!list.length) {
-            msg.textContent = "“" + q + "” topilmadi. Boshqacha yozib ko‘ring.";
-            msg.classList.remove("hidden");
-            return;
-          }
-          goToPlace(list[0]);
-        } catch (_) {
-          var l = localMatches(q);
-          if (l.length) {
-            goToPlace(l[0]);
-            return;
-          }
-          msg.textContent =
-            "Qidiruvda xatolik. Internetni tekshirib, qayta urinib ko‘ring.";
-          msg.classList.remove("hidden");
+          S = JSON.parse(localStorage.getItem(KEY));
+        } catch (e) {
+          S = null;
+        }
+        if (!S) {
+          const n = Date.now();
+          S = {
+            bal: 350000,
+            svc: {},
+            cards: [
+              {
+                num: "8600 1234 5678 4417",
+                name: "ALISHER KARIMOV",
+                exp: "09/28",
+                type: "Uzcard",
+                main: true,
+              },
+              {
+                num: "9860 9876 5432 1090",
+                name: "ALISHER KARIMOV",
+                exp: "03/27",
+                type: "Humo",
+                main: false,
+              },
+            ],
+            auto: { on: false, day: 5, card: 0 },
+            hist: [
+              { s: "suv", a: 45000, t: n - 40 * D, c: "4417" },
+              { s: "wifi", a: 110000, t: n - 22 * D, c: "1090" },
+              { s: "mobil", a: 50000, t: n - 9 * D, c: "4417" },
+            ],
+          };
+          SV.forEach((v) => (S.svc[v.id] = { paid: false, due: n + v.first }));
         }
       }
+      const save = () => {
+        try {
+          localStorage.setItem(KEY, JSON.stringify(S));
+        } catch (e) {}
+      };
+      const fmt = (n) => Number(n).toLocaleString("ru-RU") + " so'm";
+      const sv = (id) => SV.find((x) => x.id === id);
+      const mainCard = () => S.cards.find((c) => c.main) || S.cards[0];
+      function toast(t) {
+        const e = document.getElementById("toast");
+        e.textContent = t;
+        e.classList.add("show");
+        clearTimeout(toast.t);
+        toast.t = setTimeout(() => e.classList.remove("show"), 2600);
+      }
+      const left = (ms) => {
+        const s = Math.max(0, Math.floor(ms / 1e3));
+        const d = Math.floor(s / 86400),
+          h = Math.floor((s % 86400) / 3600),
+          m = Math.floor((s % 3600) / 60),
+          x = s % 60,
+          p = (v) => String(v).padStart(2, "0");
+        return (d ? d + " kun " : "") + `${p(h)}:${p(m)}:${p(x)}`;
+      };
 
-      function copyOtchyot() {
-        var text = [
-          document.getElementById("repCountryBadge").textContent,
-          document.getElementById("repPlaceTitle").textContent,
-          "Koordinatalar: " + document.getElementById("repCoords").textContent,
-          document.getElementById("repAddressLine").textContent,
-        ].join("\n");
-        var label = document.getElementById("copyBtn").querySelector("span");
-        var done = function () {
-          label.textContent = "Nusxalandi ✓";
-          setTimeout(function () {
-            label.textContent = "Otchyotni nusxalash";
-          }, 1800);
-        };
-        if (navigator.clipboard && navigator.clipboard.writeText)
-          navigator.clipboard.writeText(text).then(done, done);
-        else done();
+      // ---------- Kartochkalar ----------
+      function cardHTML(v) {
+        return `<div class="glass lift p-5 flex flex-col gap-3" id="k-${v.id}">
+ <div class="flex items-center gap-3"><div class="chip" style="background:${v.bg};color:${v.c}">${ic(v.i)}</div><div><div class="font-extrabold leading-tight">${v.n}</div><div class="text-sm" style="color:var(--mut)">${v.d}</div></div></div>
+ <div class="flex justify-between items-end"><div class="text-xl font-extrabold">${fmt(v.a)}</div><div class="text-xs" style="color:var(--mut)">har ${v.days === 90 ? "3 oy" : "oy"}</div></div>
+ <div class="warn" id="w-${v.id}"></div>
+ <div class="text-sm flex gap-2 items-center" style="color:var(--mut)">${ic("clock").replace('class="ico"', 'class="ico" style="width:1.1rem;height:1.1rem"')}<span id="t-${v.id}"></span></div>
+ <button class="btn w-full mt-auto" id="b-${v.id}" onclick="pay('${v.id}')">To'lash</button></div>`;
+      }
+      function renderCards() {
+        coreGrid.innerHTML = SV.filter((v) => v.g === "core")
+          .map(cardHTML)
+          .join("");
+        extraGrid.innerHTML = SV.filter((v) => v.g === "extra")
+          .map(cardHTML)
+          .join("");
       }
 
-      // ---------- Kattalashtirilgan oyna ----------
-      var fsModal = document.getElementById("mapFullscreenModal");
-      function openFullscreenMap() {
-        hideSuggestions();
-        document
-          .getElementById("modalMapSlot")
-          .appendChild(document.getElementById("leafletMap"));
-        fsModal.classList.remove("hidden");
-        fsModal.classList.add("flex");
-        document.body.style.overflow = "hidden";
-        map.invalidateSize({ pan: false });
-        setTimeout(function () {
-          map.invalidateSize({ pan: false });
-        }, 120);
-      }
-      function closeFullscreenMap() {
-        document
-          .getElementById("mapHomeSlot")
-          .appendChild(document.getElementById("leafletMap"));
-        fsModal.classList.add("hidden");
-        fsModal.classList.remove("flex");
-        document.body.style.overflow = "";
-        hideSuggestions();
-        map.invalidateSize({ pan: false });
-        setTimeout(function () {
-          map.invalidateSize({ pan: false });
-        }, 120);
-      }
-      document.addEventListener("keydown", function (e) {
-        if (e.key !== "Escape") return;
-        hideSuggestions();
-        if (!fsModal.classList.contains("hidden")) closeFullscreenMap();
-      });
-      ["click", "touchstart"].forEach(function (ev) {
-        document.addEventListener(
-          ev,
-          function (e) {
-            if (
-              !e.target.closest(
-                "#mainSuggestionsBox, #mapSearchInput, #modalSuggestionsBox, #modalMapSearchInput",
-              )
-            )
-              hideSuggestions();
-          },
-          { passive: true },
-        );
-      });
-
-      // ---------- Forma ----------
-      document
-        .getElementById("contactForm")
-        .addEventListener("submit", function (e) {
-          e.preventDefault();
-          var box = document.getElementById("formSuccess");
-          box.classList.remove("hidden");
-          box.classList.add("flex");
-          this.reset();
-          setTimeout(function () {
-            box.classList.add("hidden");
-            box.classList.remove("flex");
-          }, 5000);
+      // ---------- To'lov ----------
+      function pay(id, auto) {
+        const v = sv(id),
+          st = S.svc[id],
+          mc = mainCard();
+        if (st.paid) return;
+        if (S.bal < v.a) {
+          toast("Balans yetarli emas. Avval balansni to'ldiring.");
+          if (!auto) openModal("topup");
+          return false;
+        }
+        S.bal -= v.a;
+        st.paid = true;
+        st.due = Date.now() + v.days * D;
+        S.hist.unshift({
+          s: id,
+          a: v.a,
+          t: Date.now(),
+          c: mc ? mc.num.slice(-4) : "----",
         });
+        save();
+        toast((auto ? "Avto-to'lov: " : "") + v.n + " to'landi");
+        tick();
+        renderHist();
+        return true;
+      }
+
+      function tick() {
+        const now = Date.now();
+        let debt = 0,
+          paidSum = 0;
+        SV.forEach((v) => {
+          const st = S.svc[v.id],
+            b = document.getElementById("b-" + v.id),
+            w = document.getElementById("w-" + v.id),
+            t = document.getElementById("t-" + v.id);
+          if (
+            !st.paid &&
+            now >= st.due &&
+            S.auto.on &&
+            new Date().getDate() >= S.auto.day &&
+            S.bal >= v.a
+          ) {
+            pay(v.id, true);
+            return;
+          }
+          if (st.paid && now >= st.due) {
+            st.paid = false;
+            save();
+          }
+          if (st.paid) {
+            b.disabled = true;
+            b.className = "btn w-full mt-auto";
+            b.textContent = "To'landi";
+            w.innerHTML = "";
+            t.textContent =
+              "Keyingi to'lov: " + v.lbl + " (" + left(st.due - now) + ")";
+          } else if (now >= st.due) {
+            debt += v.a;
+            b.disabled = false;
+            b.className = "btn due w-full mt-auto";
+            b.textContent = "To'lash";
+            w.innerHTML =
+              ic("alert").replace(
+                'class="ico"',
+                'class="ico" style="width:1rem;height:1rem"',
+              ) + "To'lash vaqti yetdi!";
+            t.textContent = "Muddat o'tdi — " + fmt(v.a);
+          } else {
+            b.disabled = false;
+            b.className = "btn w-full mt-auto";
+            b.textContent = "To'lash";
+            w.innerHTML = "";
+            t.textContent = "Muddatgacha: " + left(st.due - now);
+          }
+        });
+        const mo = new Date();
+        mo.setDate(1);
+        mo.setHours(0, 0, 0, 0);
+        paidSum = S.hist
+          .filter((h) => h.t >= mo.getTime())
+          .reduce((a, h) => a + h.a, 0);
+        heroBal.textContent = fmt(S.bal);
+        heroDebt.textContent = fmt(debt);
+        clock.textContent = new Date().toLocaleTimeString("uz-UZ");
+        renderStats(paidSum, debt);
+      }
+
+      function renderStats(p, d) {
+        const it = [
+          [
+            "check",
+            "#22c55e",
+            "rgba(34,197,94,.15)",
+            "Shu oydagi to'lovlar",
+            fmt(p),
+          ],
+          [
+            "alert",
+            "#f87171",
+            "rgba(239,68,68,.15)",
+            "Qolgan qarzdorlik",
+            fmt(d),
+          ],
+          [
+            "doc",
+            "#38bdf8",
+            "rgba(56,189,248,.15)",
+            "Faol shartnomalar",
+            SV.length + " ta",
+          ],
+          [
+            "repeat",
+            "#a78bfa",
+            "rgba(167,139,250,.17)",
+            "Avto-to'lov",
+            S.auto.on ? "Yoqilgan" : "O'chirilgan",
+          ],
+        ];
+        stats.innerHTML = it
+          .map(
+            (x) =>
+              `<div class="glass lift p-4"><div class="chip mb-3" style="background:${x[2]};color:${x[1]}">${ic(x[0])}</div><div class="text-sm" style="color:var(--mut)">${x[3]}</div><div class="text-lg md:text-xl font-extrabold">${x[4]}</div></div>`,
+          )
+          .join("");
+      }
+
+      // ---------- Tarix ----------
+      function renderHist() {
+        const f = hFilter.value || "all";
+        const rows = S.hist
+          .filter((h) => f === "all" || h.s === f)
+          .slice(0, 40);
+        hBody.innerHTML = rows.length
+          ? rows
+              .map((h) => {
+                const v = sv(h.s);
+                return `<tr><td><span class="inline-flex items-center gap-3"><span class="chip" style="width:2.3rem;height:2.3rem;border-radius:12px;background:${v.bg};color:${v.c}">${ic(v.i)}</span><b>${v.n}</b></span></td><td class="font-bold">${fmt(h.a)}</td><td>${new Date(h.t).toLocaleDateString("uz-UZ")}</td><td>•••• ${h.c}</td><td><span class="badge">Muvaffaqiyatli</span></td></tr>`;
+              })
+              .join("")
+          : `<tr><td colspan="5" style="color:var(--mut)">Bu xizmat bo'yicha to'lov hali yo'q. Kartochkadagi "To'lash" tugmasini bosing.</td></tr>`;
+      }
+
+      // ---------- Kartalar ----------
+      function renderCardsList() {
+        cardList.innerHTML =
+          S.cards
+            .map(
+              (
+                c,
+                i,
+              ) => `<div class="ccard"><div class="flex justify-between text-sm font-bold"><span>${c.type}</span>${c.main ? '<span class="badge">Asosiy</span>' : ""}</div>
+  <div class="text-lg font-extrabold tracking-wider mt-5">•••• •••• •••• ${c.num.slice(-4)}</div><div class="flex justify-between text-xs mt-3 opacity-90"><span>${c.name}</span><span>${c.exp}</span></div>
+  <div class="flex gap-2 mt-3">${c.main ? "" : `<button class="btn ghost" style="padding:.4rem .7rem;font-size:.8rem" onclick="setMain(${i})">Asosiy qilish</button>`}<button class="btn ghost" style="padding:.4rem .7rem;font-size:.8rem" onclick="delCard(${i})">O'chirish</button></div></div>`,
+            )
+            .join("") || `<p style="color:var(--mut)">Karta qo'shilmagan.</p>`;
+        const o = S.cards
+          .map(
+            (c, i) =>
+              `<option value="${i}">${c.type} •••• ${c.num.slice(-4)}</option>`,
+          )
+          .join("");
+        autoCard.innerHTML = o;
+        tCard.innerHTML = o;
+        autoCard.value = Math.min(S.auto.card, S.cards.length - 1);
+      }
+      function setMain(i) {
+        S.cards.forEach((c, j) => (c.main = i === j));
+        save();
+        renderCardsList();
+        toast("Asosiy karta o'zgartirildi");
+      }
+      function delCard(i) {
+        if (S.cards.length < 2) {
+          toast("Kamida bitta karta qolishi kerak");
+          return;
+        }
+        const was = S.cards[i].main;
+        S.cards.splice(i, 1);
+        if (was) S.cards[0].main = true;
+        save();
+        renderCardsList();
+      }
+      const detect = (n) =>
+        n.startsWith("8600")
+          ? "Uzcard"
+          : n.startsWith("9860")
+            ? "Humo"
+            : n.startsWith("4")
+              ? "Visa"
+              : "";
+      function addCard() {
+        const num = cNum.value.replace(/\D/g, ""),
+          name = cName.value.trim().toUpperCase(),
+          exp = cExp.value.trim(),
+          type = detect(num);
+        if (num.length !== 16 || !type) {
+          toast("Karta raqami noto'g'ri (Uzcard, Humo yoki Visa)");
+          return;
+        }
+        if (!name) {
+          toast("Karta egasining ismini kiriting");
+          return;
+        }
+        if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(exp)) {
+          toast("Muddatni MM/YY ko'rinishida kiriting");
+          return;
+        }
+        if (S.cards.some((c) => c.num.replace(/\s/g, "") === num)) {
+          toast("Bu karta allaqachon qo'shilgan");
+          return;
+        }
+        if (cMain.checked) S.cards.forEach((c) => (c.main = false));
+        S.cards.push({
+          num: num.replace(/(\d{4})(?=\d)/g, "$1 "),
+          name,
+          exp,
+          type,
+          main: cMain.checked || !S.cards.length,
+        });
+        save();
+        renderCardsList();
+        closeModal();
+        toast("Karta qo'shildi");
+        cNum.value = cName.value = cExp.value = "";
+      }
+      function topUp() {
+        const a = parseInt(tAmt.value, 10);
+        if (!a || a < 1000) {
+          toast("Kamida 1 000 so'm kiriting");
+          return;
+        }
+        if (!S.cards.length) {
+          toast("Avval karta qo'shing");
+          openModal("card");
+          return;
+        }
+        S.bal += a;
+        save();
+        tAmt.value = "";
+        closeModal();
+        toast(fmt(a) + " balansga qo'shildi");
+        tick();
+      }
+
+      // ---------- Modal ----------
+      function openModal(t) {
+        modal.classList.add("open");
+        paneCard.classList.toggle("hidden", t !== "card");
+        paneTop.classList.toggle("hidden", t !== "topup");
+        tabCard.style.outline =
+          t === "card" ? "2px solid var(--brand)" : "none";
+        tabTop.style.outline =
+          t === "topup" ? "2px solid var(--brand)" : "none";
+      }
+      const closeModal = () => modal.classList.remove("open");
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeModal();
+      });
+
+      // ---------- Avto-to'lov ----------
+      function renderAuto() {
+        autoTog.classList.toggle("on", S.auto.on);
+        autoTog.setAttribute("aria-checked", S.auto.on);
+        autoLbl.textContent = S.auto.on ? "Yoqilgan" : "O'chirilgan";
+        autoDay.value = S.auto.day;
+      }
+      function toggleAuto() {
+        S.auto.on = !S.auto.on;
+        save();
+        renderAuto();
+        tick();
+        toast(S.auto.on ? "Avto-to'lov yoqildi" : "Avto-to'lov o'chirildi");
+      }
+
+      // ---------- Boshlash ----------
+      init();
+      renderCards();
+      autoDay.innerHTML = Array.from(
+        { length: 28 },
+        (_, i) => `<option value="${i + 1}">${i + 1}-kuni</option>`,
+      ).join("");
+      hFilter.innerHTML =
+        `<option value="all">Barcha xizmatlar</option>` +
+        SV.map((v) => `<option value="${v.id}">${v.n}</option>`).join("");
+      quick.innerHTML = [50000, 100000, 200000, 500000]
+        .map(
+          (a) =>
+            `<button class="btn ghost" style="padding:.4rem .8rem" onclick="tAmt.value=${a}">${a.toLocaleString("ru-RU")}</button>`,
+        )
+        .join("");
+      autoTog.onclick = toggleAuto;
+      autoTog.onkeydown = (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          toggleAuto();
+        }
+      };
+      autoDay.onchange = () => {
+        S.auto.day = +autoDay.value;
+        save();
+      };
+      autoCard.onchange = () => {
+        S.auto.card = +autoCard.value;
+        S.cards.forEach((c, i) => (c.main = i === +autoCard.value));
+        save();
+        renderCardsList();
+        autoCard.value = S.auto.card;
+      };
+      hFilter.onchange = renderHist;
+      cNum.oninput = () => {
+        const d = cNum.value.replace(/\D/g, "").slice(0, 16);
+        cNum.value = d.replace(/(\d{4})(?=\d)/g, "$1 ");
+        cType.textContent = detect(d);
+      };
+      cExp.oninput = () => {
+        let d = cExp.value.replace(/\D/g, "").slice(0, 4);
+        if (d.length > 2) d = d.slice(0, 2) + "/" + d.slice(2);
+        cExp.value = d;
+      };
+      yr.textContent = new Date().getFullYear();
+      renderCardsList();
+      renderAuto();
+      renderHist();
+      paintIcons();
+      tick();
+      setInterval(() => {
+        tick();
+        paintIcons();
+      }, 1000);
     </script>
   </body>
 </html>

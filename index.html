@@ -649,9 +649,16 @@
         z-index: 1;
       }
     </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./site-refresh.css" />
   </head>
 
-  <body class="font-sans antialiased text-gray-800">
+  <body class="home-page font-sans antialiased text-gray-800">
     <!-- LOGIN: kirish oynasi (faqat "Kirish" bosilganda ochiladi) -->
     <div id="authGate" class="ph-gate">
       <div class="w-full max-w-[440px]">
@@ -1567,11 +1574,13 @@
                     label: "Soni",
                     data: [300, 50, 100],
                     backgroundColor: [
-                      "rgb(255, 19, 132)",
-                      "rgb(54, 162, 235)",
-                      "rgb(255, 205, 86)",
+                      "#1f8060",
+                      "#83a85e",
+                      "#bfd69a",
                     ],
                     hoverOffset: 4,
+                    borderColor: "#ffffff",
+                    borderWidth: 4,
                   },
                 ],
               };

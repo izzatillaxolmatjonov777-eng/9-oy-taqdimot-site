@@ -1266,92 +1266,97 @@
       <div id="cmBack" class="absolute inset-0 bg-gray-900/50"></div>
       <div
         id="cmBox"
-        class="relative w-full max-w-[460px] max-h-[92vh] overflow-y-auto bg-white rounded-3xl shadow-2xl p-6 sm:p-7"
+        class="relative w-full max-w-md max-h-[92vh] overflow-y-auto bg-white rounded-3xl shadow-2xl p-6"
       >
+        <div class="flex gap-2 mb-4">
+          <button
+            id="tabCard"
+            type="button"
+            class="flex-1 px-4 py-3 text-sm font-bold text-white rounded-xl b1 cursor-pointer"
+          >
+            Karta qo'shish
+          </button>
+          <button
+            id="tabTop"
+            type="button"
+            class="flex-1 px-4 py-3 text-sm font-bold text-gray-700 bg-white border border-gray-300 rounded-xl cursor-pointer"
+          >
+            Balans to'ldirish
+          </button>
+        </div>
+        <form id="cmAdd" class="space-y-3" novalidate>
+          <input
+            id="cNum"
+            inputmode="numeric"
+            autocomplete="off"
+            maxlength="19"
+            placeholder="Karta raqami: 8600 0000 0000 0000"
+            aria-label="Karta raqami"
+            class="w-full px-3 py-3 text-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          />
+          <div
+            id="cBrand"
+            class="text-sm font-bold"
+            style="min-height: 1.25rem; color: #15803d"
+          ></div>
+          <input
+            id="cName"
+            autocomplete="off"
+            maxlength="26"
+            placeholder="Karta egasi (ISM FAMILIYA)"
+            aria-label="Karta egasi"
+            class="w-full px-3 py-3 text-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 uppercase"
+          />
+          <input
+            id="cExp"
+            inputmode="numeric"
+            autocomplete="off"
+            maxlength="5"
+            placeholder="Amal qilish muddati: MM/YY"
+            aria-label="Amal qilish muddati"
+            class="w-full px-3 py-3 text-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          />
+          <label class="flex gap-2 items-center text-sm text-gray-700"
+            ><input id="cMain" type="checkbox" class="accent-emerald-600" />
+            Asosiy karta qilib belgilash</label
+          >
+          <button
+            type="submit"
+            class="w-full px-5 py-3 text-sm font-bold text-white rounded-xl b1 hover:opacity-95 cursor-pointer"
+          >
+            Kartani saqlash
+          </button>
+        </form>
+        <form id="cmTop" class="space-y-3" style="display: none" novalidate>
+          <select
+            id="tCard"
+            aria-label="Karta"
+            class="w-full px-3 py-3 text-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+          ></select>
+          <input
+            id="tAmt"
+            inputmode="numeric"
+            autocomplete="off"
+            placeholder="Summa (so'm), masalan 100000"
+            aria-label="Summa"
+            class="w-full px-3 py-3 text-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          />
+          <div id="tChips" class="flex flex-wrap gap-2"></div>
+          <button
+            id="tGo"
+            type="submit"
+            class="w-full px-5 py-3 text-sm font-bold text-white rounded-xl b1 hover:opacity-95 cursor-pointer"
+          >
+            Balansni to'ldirish
+          </button>
+        </form>
         <button
-          id="cmX"
+          id="cmClose"
           type="button"
-          aria-label="Yopish"
-          class="absolute top-4 right-4 w-9 h-9 rounded-xl text-gray-400 hover:bg-emerald-50 hover:text-emerald-600 cursor-pointer"
+          class="w-full mt-3 px-5 py-3 text-sm font-bold text-gray-700 bg-white border border-gray-300 hover:border-emerald-500 rounded-xl cursor-pointer"
         >
-          ✕
+          Yopish
         </button>
-        <div id="cmCardsWrap">
-          <h3 class="text-xl font-black pr-8">
-            Karta <span class="gradient-text">qo'shish</span>
-          </h3>
-          <p class="text-xs text-gray-500 mt-1">
-            Karta turi raqamdan avtomatik aniqlanadi: 8600 Uzcard, 9860 Humo, 4
-            Visa. Bu simulyatsiya, haqiqiy pul yechilmaydi.
-          </p>
-          <form id="cmAdd" class="mt-4 space-y-3" novalidate>
-            <div class="relative">
-              <input
-                id="cNum"
-                inputmode="numeric"
-                autocomplete="off"
-                maxlength="19"
-                placeholder="8600 0000 0000 0000"
-                aria-label="Karta raqami"
-                class="w-full pl-3 pr-28 py-3 text-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              />
-              <span
-                id="cBrand"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-extrabold"
-              ></span>
-            </div>
-            <input
-              id="cExp"
-              inputmode="numeric"
-              autocomplete="off"
-              maxlength="5"
-              placeholder="Amal qilish muddati: MM/YY"
-              aria-label="Amal qilish muddati"
-              class="w-full px-3 py-3 text-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            />
-            <button
-              type="submit"
-              class="w-full px-5 py-3 text-sm font-bold text-white rounded-xl b1 hover:opacity-95 cursor-pointer"
-            >
-              Kartani qo'shish
-            </button>
-          </form>
-          <h4 class="text-sm font-extrabold mt-6">Biriktirilgan kartalar</h4>
-          <div id="cmList" class="mt-2 space-y-2"></div>
-        </div>
-        <div id="cmTopWrap">
-          <form id="cmTop" class="space-y-3" novalidate>
-            <h3 class="text-xl font-black pr-8">
-              Hisobni <span class="gradient-text">to'ldirish</span>
-            </h3>
-            <select
-              id="tCard"
-              aria-label="Karta"
-              class="w-full px-3 py-3 text-sm border border-gray-300 rounded-xl bg-white"
-            ></select>
-            <input
-              id="tAmt"
-              inputmode="numeric"
-              autocomplete="off"
-              placeholder="Summa (so'm), masalan 100000"
-              aria-label="Summa"
-              class="w-full px-3 py-3 text-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            />
-            <div id="tChips" class="flex flex-wrap gap-2"></div>
-            <button
-              id="tGo"
-              type="submit"
-              class="w-full px-5 py-3 text-sm font-bold text-white rounded-xl b1 hover:opacity-95 cursor-pointer"
-            >
-              Hisobni to'ldirish
-            </button>
-          </form>
-        </div>
-        <p
-          id="cmMsg"
-          class="hidden mt-3 text-xs font-semibold rounded-lg px-3 py-2"
-          role="alert"
-        ></p>
       </div>
     </div>
     <div
@@ -2721,35 +2726,6 @@
                   GR[0] +
                   '"><span class="font-extrabold" style="font-size:13px">Karta qo\'shilmagan</span><span class="font-extrabold" style="font-size:clamp(14px,6.1cqw,21px);letter-spacing:.06em">•••• •••• •••• ••••</span><span style="font-size:11px" class="opacity-90">"Karta qo\'shish" tugmasi orqali karta biriktiring</span></div></div>',
           );
-          $("cmList").innerHTML = S.cards.length
-            ? S.cards
-                .map(function (c) {
-                  return (
-                    '<div class="flex items-center justify-between gap-2 p-3 border border-gray-200 rounded-xl"><div class="flex items-center gap-3 min-w-0"><span class="w-9 h-6 rounded-md shrink-0" style="background:' +
-                    GR[c.g % GR.length] +
-                    '"></span><div class="text-sm min-w-0"><b class="block truncate">' +
-                    c.brand +
-                    " " +
-                    fnum(c.num) +
-                    '</b><span class="text-xs text-gray-500">' +
-                    (c.name ? c.name + " · " : "") +
-                    c.exp +
-                    " · " +
-                    fmt(c.bal) +
-                    (c.main ? " · asosiy" : "") +
-                    '</span></div></div><div class="flex gap-2 shrink-0">' +
-                    (c.main
-                      ? ""
-                      : '<button type="button" data-main="' +
-                        c.id +
-                        '" class="text-xs font-bold text-emerald-700 hover:underline cursor-pointer">Asosiy qilish</button>') +
-                    '<button type="button" data-del="' +
-                    c.id +
-                    '" class="text-xs font-bold text-red-600 hover:underline cursor-pointer">O\'chirish</button></div></div>'
-                  );
-                })
-                .join("")
-            : '<p class="text-xs text-gray-500">Hali karta biriktirilmagan.</p>';
           renderSelects();
         }
         function build() {
@@ -3285,36 +3261,76 @@
 
         var cm = $("cm");
         function msg(t, ok) {
-          var m = $("cmMsg");
-          m.textContent = t;
-          m.className = t
-            ? "mt-3 text-xs font-semibold rounded-lg px-3 py-2 " +
-              (ok
-                ? "text-emerald-700 bg-emerald-50 border border-emerald-200"
-                : "text-red-600 bg-red-50 border border-red-200")
-            : "hidden";
+          if (t) toast(t);
+        }
+        function expErr(val) {
+          var d = String(val).replace(/\D/g, "");
+          if (d.length < 2) return "";
+          var mm = +d.slice(0, 2);
+          if (mm < 1 || mm > 12)
+            return "Oy 01 dan 12 gacha bo'lishi kerak (masalan 09/28).";
+          if (d.length < 4) return "";
+          var yy = 2000 + +d.slice(2, 4),
+            now = new Date(),
+            cy = now.getFullYear(),
+            cmn = now.getMonth() + 1;
+          if (yy < cy || (yy === cy && mm < cmn))
+            return "Karta muddati tugagan. Amal qilish muddatini tekshiring.";
+          if (yy > cy + 10)
+            return (
+              "Yil noto'g'ri: karta muddati ko'pi bilan " +
+              (cy + 10) +
+              "-yilgacha bo'ladi."
+            );
+          return "";
+        }
+        function resetCm() {
+          $("cNum").value = "";
+          $("cName").value = "";
+          $("cExp").value = "";
+          $("cMain").checked = false;
+          $("tAmt").value = "";
+          setTxt($("cBrand"), "");
+        }
+        function setTab(t) {
+          $("cmAdd").style.display = t === "top" ? "none" : "block";
+          $("cmTop").style.display = t === "top" ? "block" : "none";
+          setCls(
+            $("tabCard"),
+            t === "top"
+              ? "flex-1 px-4 py-3 text-sm font-bold text-gray-700 bg-white border border-gray-300 rounded-xl cursor-pointer"
+              : "flex-1 px-4 py-3 text-sm font-bold text-white rounded-xl b1 cursor-pointer",
+          );
+          setCls(
+            $("tabTop"),
+            t === "top"
+              ? "flex-1 px-4 py-3 text-sm font-bold text-white rounded-xl b1 cursor-pointer"
+              : "flex-1 px-4 py-3 text-sm font-bold text-gray-700 bg-white border border-gray-300 rounded-xl cursor-pointer",
+          );
         }
         function openCm(need, target, cardId) {
           afterAddSvc = "";
           renderSelects();
           if (cardId) $("tCard").value = cardId;
-          $("tAmt").value = need ? String(Math.ceil(need / 1000) * 1000) : "";
-          $("cmCardsWrap").style.display = target === "top" ? "none" : "block";
-          $("cmTopWrap").style.display = target === "card" ? "none" : "block";
-          msg("");
+          resetCm();
+          if (need) $("tAmt").value = String(Math.ceil(need / 1000) * 1000);
+          setTab(target === "top" ? "top" : "card");
           cm.style.display = "flex";
           document.body.style.overflow = "hidden";
           $("cmBox").scrollTop = 0;
-          if (target === "card")
-            setTimeout(function () {
-              $("cNum").focus();
-            }, 60);
         }
         function closeCm() {
           cm.style.display = "none";
           document.body.style.overflow = "";
           afterAddSvc = "";
         }
+        $("tabCard").addEventListener("click", function () {
+          setTab("card");
+        });
+        $("tabTop").addEventListener("click", function () {
+          renderSelects();
+          setTab("top");
+        });
         document.querySelectorAll("[data-cards]").forEach(function (b) {
           b.addEventListener("click", function () {
             openCm(0);
@@ -3330,7 +3346,7 @@
             openCm(0, "top");
           });
         });
-        $("cmX").addEventListener("click", closeCm);
+        $("cmClose").addEventListener("click", closeCm);
         $("cmBack").addEventListener("click", closeCm);
         document.addEventListener("keydown", function (e) {
           if (e.key === "Escape" && cm.style.display === "flex") closeCm();
@@ -3362,7 +3378,6 @@
         $("cExp").addEventListener("input", function () {
           var v = this.value.replace(/\D/g, "").slice(0, 4);
           this.value = v.length > 2 ? v.slice(0, 2) + "/" + v.slice(2) : v;
-          msg("");
         });
         $("tAmt").addEventListener("input", function () {
           this.value = this.value.replace(/\D/g, "").slice(0, 9);
@@ -3403,7 +3418,6 @@
             stats();
           }
         };
-        $("cmList").addEventListener("click", cardAct);
         $("cardChips").addEventListener("click", cardAct);
         function brand(n) {
           return /^8600/.test(n)
@@ -3419,17 +3433,18 @@
         $("cmAdd").addEventListener("submit", function (e) {
           e.preventDefault();
           var num = $("cNum").value.replace(/\D/g, ""),
-            ex = $("cExp").value.split("/"),
-            mm = +ex[0],
-            b = brand(num);
-          if (num.length !== 16)
-            return msg("Karta raqami 16 ta raqamdan iborat bo'lishi kerak.");
-          if (!b)
+            exp = $("cExp").value,
+            b = brand(num),
+            name = $("cName").value.trim().toUpperCase();
+          if (num.length !== 16 || !b)
             return msg(
-              "Karta turi aniqlanmadi. Uzcard 8600, Humo 9860 yoki Visa 4 bilan boshlanadi.",
+              "Karta raqami noto'g'ri (Uzcard 8600, Humo 9860 yoki Visa 4 bilan boshlanadi).",
             );
-          if (!(mm >= 1 && mm <= 12) || String(ex[1] || "").length !== 2)
-            return msg("Amal qilish muddatini MM/YY ko'rinishida kiriting.");
+          if (!name) return msg("Karta egasining ismini kiriting.");
+          var er = expErr(exp);
+          if (!er && !/^(0[1-9]|1[0-2])\/\d{2}$/.test(exp))
+            er = "Muddatni MM/YY ko'rinishida kiriting (masalan 09/28).";
+          if (er) return msg(er);
           if (S.cards.length >= MAXC)
             return msg("Ko'pi bilan 10 ta karta biriktirish mumkin.");
           if (
@@ -3437,24 +3452,24 @@
               return c.num === num;
             })
           )
-            return msg("Bu karta allaqachon biriktirilgan.");
-          var u = window.PHAuth && PHAuth.user(),
-            holder = u
-              ? PHAuth.displayName(PHAuth.profile()).toUpperCase()
-              : "KARTA EGASI";
-          var isMain = !S.cards.length,
+            return msg("Bu karta allaqachon qo'shilgan.");
+          var isMain = $("cMain").checked || !S.cards.length,
             used = S.cards.map(function (c) {
               return c.g;
             }),
             gi = 0;
+          if (isMain)
+            S.cards.forEach(function (c) {
+              c.main = false;
+            });
           while (gi < GR.length && used.indexOf(gi) > -1) gi++;
           var nc = {
             id: "c" + Date.now().toString(36),
             num: num,
             last4: num.slice(-4),
             brand: b,
-            exp: $("cExp").value,
-            name: holder,
+            exp: exp,
+            name: name,
             main: isMain,
             g: gi % GR.length,
             bal: S.bal,
@@ -3466,10 +3481,8 @@
           cardsGoFirst = true;
           renderCards();
           stats();
-          $("cNum").value = "";
-          $("cExp").value = "";
-          setTxt($("cBrand"), "");
           var ret = afterAddSvc;
+          resetCm();
           closeCm();
           toast(b + " kartasi qo'shildi.");
           if (ret) openPay(ret);
